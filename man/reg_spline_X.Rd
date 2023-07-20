@@ -13,7 +13,7 @@ reg_spline_X(x, xp, smooth, ...)
 
 \item{smooth}{spline to use (\code{rms::rcs}, \code{splines::ns}, \code{splines::bs} currently supported via 'rcs', 'ns', 'bs'). \code{smooth} = 'none' results in \code{x} as only predictor (i.e., no spline)}
 
-\item{...}{additional arguments for specific splines ('nk' or 'knots' for 'rcs'; 'df' or 'knots' for 'ns' or 'bs')}
+\item{...}{additional arguments for specific splines ('nk' or 'knots' for 'rcs', 'df' or 'knots' for 'ns' or 'bs')}
 }
 \value{
 a list containing

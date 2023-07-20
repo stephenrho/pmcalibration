@@ -21,20 +21,19 @@
 #' @export
 pmcalibration <- function(y, p,
                           smooth=c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
-                          ci = c("sim", "boot"), conf_level=.95,
+                          ci = c("sim", "boot", "none"), conf_level=.95,
                           n=1000, logitp = T, neval=100, ...){
-
-  if (smooth %in% c("gam")){ #, "lowess", "loess")){
-    stop("Sorry! smooth = '", smooth, "' isn't impemented yet. Check back soon")
-  }
 
   # TODO
   # - add ci option "pw" for pointwise (plot only)
-  # - implement nveval = 0 | NULL --> dont save plot info (just set pplot to NULL?) (DONE?)
+  # - implement nveval = 0 | NULL --> dont save plot info (just set pplot to NULL?) (DONE)
   # - lowess_cal and loess_cal and associated boot methods (DONE)
-  # - gam and associated methods
+  # - gam and associated methods (DONE)
   # - add print method for pmcalibration
   # - merge method and smooth - does it make sense to have separate? (DONE)
+  # - function to extract plot data (get_cc()) (DONE)
+  # - if 'knots' specified then use same knots on each boot sample (DONE except gam)
+  # - allow Boundary.knots arg for ns/bs
 
   dots <- list(...)
 
@@ -67,14 +66,17 @@ pmcalibration <- function(y, p,
     x <- p; xp <- pplot
   }
 
-  # glm
+  # fit cc
   if (smooth %in% c("none", "ns", "bs", "rcs")){
-    XX <- reg_spline_X(x = x, xp = xp, smooth = smooth, ...)
-    cal <- glm_cal(y = y, p = p, X = XX$X, Xp = XX$Xp, save_data = T, save_mod = T)
+    # XX <- reg_spline_X(x = x, xp = xp, smooth = smooth, ...)
+    # cal <- glm_cal(y = y, p = p, X = XX$X, Xp = XX$Xp, save_data = T, save_mod = T)
+    cal <- glm_cal(y = y, p = p, x = x, xp = xp, smooth = smooth, save_data = T, save_mod = T, ...)
   } else if (smooth == "lowess"){
     cal <- lowess_cal(y = y, p = p, x = x, xp = xp, save_data = T)
   } else if (smooth == "loess"){
     cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T)
+  } else if (smooth == "gam"){
+    cal <- gam_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, ...)
   }
 
   if (ci == "boot"){
@@ -98,7 +100,7 @@ pmcalibration <- function(y, p,
     smooth = smooth,
     ci = ci, conf_level = conf_level,
     n = n,
-    add_args = dots
+    smooth_ags = cal$smooth_args
   )
 
   class(out) <- "pmcalibration"

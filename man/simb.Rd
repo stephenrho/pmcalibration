@@ -3,23 +3,23 @@
 \name{simb}
 \alias{simb}
 \alias{simb.glm_cal}
+\alias{simb.gam_cal}
 \alias{simb.lowess_cal}
 \alias{simb.loess_cal}
-\alias{simb.gam_cal}
 \title{Simulation based inference with a calibration curve object}
 \usage{
-simb(x, ...)
+simb(cal, ...)
 
-\method{simb}{glm_cal}(x, R = 1000)
+\method{simb}{glm_cal}(cal, R = 1000)
 
-\method{simb}{lowess_cal}(x, ...)
+\method{simb}{gam_cal}(cal, R = 1000)
 
-\method{simb}{loess_cal}(x, ...)
+\method{simb}{lowess_cal}(cal, ...)
 
-\method{simb}{gam_cal}(x, ...)
+\method{simb}{loess_cal}(cal, ...)
 }
 \arguments{
-\item{x}{an object created using one of the \code{cal} functions}
+\item{cal}{an object created using one of the \code{cal} functions}
 
 \item{...}{other object specific arguments}
 }

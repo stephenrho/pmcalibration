@@ -13,11 +13,41 @@ boot <- function(cal, ...){
 #' @rdname boot
 #' @export
 boot.glm_cal <- function(cal){
-  y <- cal$y; p <- cal$p; X <- cal$X; Xp <- cal$Xp
+  # y <- cal$y; p <- cal$p; X <- cal$X; Xp <- cal$Xp
+  #
+  # i <- sample(1:length(y), replace = T)
+  #
+  # b <- glm_cal(y = y[i], p = p[i], X = X[i, ], Xp = Xp, save_data=F, save_mod = F)
+
+  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
 
   i <- sample(1:length(y), replace = T)
 
-  b <- glm_cal(y = y[i], p = p[i], X = X[i, ], Xp = Xp, save_data=F, save_mod = F)
+  args <- list(
+    y = y[i], p = p[i], x = x[i], xp = xp, save_data=F, save_mod=F
+  )
+
+  args <- c(args, cal$smooth_args)
+
+  b <- do.call(glm_cal, args)
+
+  return(b)
+}
+
+#' @rdname boot
+#' @export
+boot.gam_cal <- function(cal){
+  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
+
+  i <- sample(1:length(y), replace = T)
+
+  args <- list(
+    y = y[i], p = p[i], x = x[i], xp = xp, save_data=F, save_mod=F
+  )
+
+  args <- c(args, cal$smooth_args)
+
+  b <- do.call(gam_cal, args)
 
   return(b)
 }
@@ -59,6 +89,7 @@ boot.loess_cal <- function(cal){
 run_boots <- function(cal, R = 1000, cores=1){
 
   cl <- parallel::makeCluster(cores)
+  # replace with pbapply?
   parallel::clusterExport(cl, varlist = c("cal", "R"), #, "calib_glm", "cal_metrics"),
                           envir = environment())
   out <- parallel::parLapply(cl, 1:R, function(i) boot(cal = cal))

@@ -16,7 +16,7 @@ check_method_smooth <- function(method, smooth){
   }
 }
 
-#' Get confidence interval from objects created with boot() or simb()
+#' Get confidence interval from objects created with \code{boot()} or \code{simb()}
 #'
 #' @keywords internal
 #' @export
@@ -52,6 +52,7 @@ get_ci <- function(b, conf_level = .95){
 #'
 #' @description
 #' This is for a quick and dirty calibration curve plot.
+#' Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
 #'
 #' @param x a \code{pmcalibration} calibration curve
 #' @param ... other args for plot()
@@ -74,6 +75,37 @@ plot.pmcalibration <- function(x, ...){
   lines(x = p, y = ci[,1], lty=2)
   lines(x = p, y = ci[,2], lty=2)
 
+}
+
+#' Extract plot data from \code{pmcalibration} object
+#'
+#' @param x \code{pmcalibration} object
+#'
+#' @return data frame for plotting with 4 columns
+#' \itemize{
+#' \item{\code{p} - values for the x-axis (predicted probabilities - note these are *not* from your data and are only used for plotting)}
+#' \item{\code{p_c} - probability impied by the calibration curve given \code{p}}
+#' \item{\code{lower} and \code{upper} - bounds of the confidence interval
+#' (type of CI and width determined by original call to \code{pmcalibration})}
+#' }
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' get_cc(cal) |>
+#'  ggplot(aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
+#'  geom_abline(intercept = 0, slope = 1, lty=2) +
+#'  geom_line() +
+#'  geom_ribbon(alpha = 1/4)
+#'  }
+get_cc <- function(x){
+  cc <- data.frame(
+    p = x$plot$p,
+    p_c = x$plot$p_c_plot,
+    lower = x$plot$conf.int[, 1],
+    upper = x$plot$conf.int[, 2]
+    )
+  return(cc)
 }
 
 #' @keywords internal

@@ -30,7 +30,8 @@ lowess_cal <- function(p, y, x, xp, save_data = T){
     xp = if (save_data) xp else NULL,
     p_c = p_c,
     metrics = cal_metrics(p, p_c),
-    p_c_plot = p_c_plot
+    p_c_plot = p_c_plot,
+    smooth_args = NULL
   )
 
   class(out) <- "lowess_cal"

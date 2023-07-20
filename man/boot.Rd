@@ -3,6 +3,7 @@
 \name{boot}
 \alias{boot}
 \alias{boot.glm_cal}
+\alias{boot.gam_cal}
 \alias{boot.lowess_cal}
 \alias{boot.loess_cal}
 \title{Bootstrap resample a calibration curve object}
@@ -10,6 +11,8 @@
 boot(cal, ...)
 
 \method{boot}{glm_cal}(cal)
+
+\method{boot}{gam_cal}(cal)
 
 \method{boot}{lowess_cal}(cal)
 

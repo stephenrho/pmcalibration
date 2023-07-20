@@ -2,11 +2,11 @@
 % Please edit documentation in R/utils.R
 \name{get_ci}
 \alias{get_ci}
-\title{Get confidence interval from objects created with boot() or simb()}
+\title{Get confidence interval from objects created with \code{boot()} or \code{simb()}}
 \usage{
 get_ci(b, conf_level = 0.95)
 }
 \description{
-Get confidence interval from objects created with boot() or simb()
+Get confidence interval from objects created with \code{boot()} or \code{simb()}
 }
 \keyword{internal}
