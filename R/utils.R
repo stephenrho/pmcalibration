@@ -27,6 +27,13 @@ summary.pmcalibration <- function(x, conf_level = .95){
     plot_tab <- cbind(plot_tab, p_ci)
   }
 
+  if (x$ci == "pw" & !is.null(x$plot$p_c_plot_se)){
+    zcrit <- qnorm((1-conf_level)/2, lower.tail = F)
+    p_ci <- x$plot$p_c_plot + t(outer(c(-1, 1)*zcrit, x$plot$p_c_plot_se))
+    colnames(p_ci) <- c("lower", "upper")
+    plot_tab <- cbind(plot_tab, p_ci)
+  }
+
   #print(m_tab, digits = 3)
 
   out <- list(
@@ -70,6 +77,9 @@ print.pmcalibratesummary <- function(x, digits = 2){
     cat(sprintf("%.0f%%", x$conf_level*100),
         "confidence intervals calculated via",
         citext[[x$ci]], "with", x$n, "replicates.\n")
+  } else if (x$ci == "pw" & !is.null(x$plot$p_c_plot_se)){
+    cat("\n")
+    cat("Pointwise confidence intervals calculated for plotting only.")
   }
 
   invisible(x)
@@ -141,6 +151,7 @@ plot.pmcalibration <- function(x, conf_level = .95, ...){
 
   plot(x = pdat$p, y = pdat$p_c, type="l",
        xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab)
+  abline(0, 1, lty=2, col="grey")
 
   if ("lower" %in% colnames(pdat)){
     lines(x = pdat$p, y = pdat$lower, lty=2)

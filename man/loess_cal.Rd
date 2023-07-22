@@ -4,7 +4,7 @@
 \alias{loess_cal}
 \title{calibration curve via \code{loess}}
 \usage{
-loess_cal(p, y, x, xp, save_data = T, save_mod = T)
+loess_cal(p, y, x, xp, save_data = T, save_mod = T, pw = F)
 }
 \arguments{
 \item{p}{predicted probabilities}
@@ -18,6 +18,8 @@ loess_cal(p, y, x, xp, save_data = T, save_mod = T)
 \item{save_data}{whether to save y, p, x, xp in the returned object}
 
 \item{save_mod}{whether to save the model in the returned object}
+
+\item{pw}{save pointwise standard errors for plotting}
 }
 \value{
 list of class \code{loess_cal}

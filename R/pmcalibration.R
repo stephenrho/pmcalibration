@@ -20,6 +20,7 @@
 #' \itemize{
 #' \item{'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
 #' \item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled x)}
+#' \item{'pw' = pointwise confidence intervals calculated via the standard errors produced by relevant \code{predict} methods. Only for plotting curves - CIs are not produced for metrics (not available for smooth = 'lowess')}
 #' }
 #' Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.
 #' @param n number of simulations or bootstrap resamples
@@ -34,13 +35,11 @@
 #' @export
 pmcalibration <- function(y, p,
                           smooth=c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
-                          ci = c("sim", "boot", "none"), #conf_level=.95,
+                          ci = c("sim", "boot", "pw", "none"),
                           n=1000, logitp = T, neval=100, ...){
 
   # TODO
-  # - add ci option "pw" for pointwise (plot only)
-  # - clean up print method for pmcalibrationsummary
-  # - if 'knots' specified then use same knots on each boot sample (DONE except gam)
+  # - add ci option "pw" for pointwise (plot only) (DONE)
   # - if smooth = 'none' print metrics for logistic calibration? or remove this option...
   # - vignettes in external and internal validation using pmcalibration
   # - save the boot/sim samples and have summary calculate 95% CIs? (DONE)
@@ -69,6 +68,12 @@ pmcalibration <- function(y, p,
     pplot <- NULL
   }
 
+  pw <- ci == "pw"
+  if (is.null(pplot) & pw){
+    warning("ci = 'pw' but neval = 0 or is.null. Will not calculate pointwise standard errors")
+    pw <- F
+  }
+
   if (logitp){
     xp <- if (!is.null(pplot)) logit(pplot) else NULL
     x <- logit(p)
@@ -80,13 +85,15 @@ pmcalibration <- function(y, p,
   if (smooth %in% c("none", "ns", "bs", "rcs")){
     # XX <- reg_spline_X(x = x, xp = xp, smooth = smooth, ...)
     # cal <- glm_cal(y = y, p = p, X = XX$X, Xp = XX$Xp, save_data = T, save_mod = T)
-    cal <- glm_cal(y = y, p = p, x = x, xp = xp, smooth = smooth, save_data = T, save_mod = T, ...)
+    cal <- glm_cal(y = y, p = p, x = x, xp = xp, smooth = smooth,
+                   save_data = T, save_mod = T, pw = pw, ...)
   } else if (smooth == "lowess"){
+    if (pw) warning("ci = 'pw' is ignored for smooth = 'lowess'")
     cal <- lowess_cal(y = y, p = p, x = x, xp = xp, save_data = T)
   } else if (smooth == "loess"){
-    cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T)
+    cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, pw = pw)
   } else if (smooth == "gam"){
-    cal <- gam_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, ...)
+    cal <- gam_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, pw = pw, ...)
   }
 
   if (ci == "boot"){
@@ -127,6 +134,7 @@ pmcalibration <- function(y, p,
     plot = list(
       p = pplot,
       p_c_plot = cal$p_c_plot,
+      p_c_plot_se = cal$p_c_plot_se,
       plot.samples = plot.samples
       #conf.int = conf.int$p_c_plot
     ),

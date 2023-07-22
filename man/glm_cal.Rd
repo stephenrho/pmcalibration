@@ -4,7 +4,7 @@
 \alias{glm_cal}
 \title{fits a calibration curve via glm}
 \usage{
-glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, ...)
+glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ...)
 }
 \arguments{
 \item{y}{binary outcome}
@@ -20,6 +20,8 @@ glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, ...)
 \item{save_data}{whether to save the data elements in the returned object}
 
 \item{save_mod}{whether to save the model in the returned object}
+
+\item{pw}{save pointwise standard errors for plotting}
 }
 \value{
 list of class \code{glm_cal}

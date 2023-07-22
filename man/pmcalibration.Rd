@@ -8,7 +8,7 @@ pmcalibration(
   y,
   p,
   smooth = c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
-  ci = c("sim", "boot", "none"),
+  ci = c("sim", "boot", "pw", "none"),
   n = 1000,
   logitp = T,
   neval = 100,
@@ -36,6 +36,7 @@ pmcalibration(
 \itemize{
 \item{'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
 \item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled x)}
+\item{'pw' = pointwise confidence intervals calculated via the standard errors produced by relevant \code{predict} methods. Only for plotting curves - CIs are not produced for metrics (not available for smooth = 'lowess')}
 }
 Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.}
 

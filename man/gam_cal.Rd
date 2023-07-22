@@ -4,7 +4,7 @@
 \alias{gam_cal}
 \title{fits a calibration curve via gam}
 \usage{
-gam_cal(y, p, x, xp, save_data = T, save_mod = T, ...)
+gam_cal(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...)
 }
 \arguments{
 \item{y}{binary outcome}
@@ -18,6 +18,8 @@ gam_cal(y, p, x, xp, save_data = T, save_mod = T, ...)
 \item{save_data}{whether to save the data elements in the returned object}
 
 \item{save_mod}{whether to save the model in the returned object}
+
+\item{pw}{save pointwise standard errors for plotting}
 
 \item{...}{additional arguments for \code{mgcv::gam} and \code{mgcv::s}}
 }

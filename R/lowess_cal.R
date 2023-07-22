@@ -31,6 +31,7 @@ lowess_cal <- function(p, y, x, xp, save_data = T){
     p_c = p_c,
     metrics = cal_metrics(p, p_c),
     p_c_plot = p_c_plot,
+    p_c_plot_se = NULL,
     smooth_args = list(smooth = "lowess")
   )
 

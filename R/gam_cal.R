@@ -6,12 +6,13 @@
 #' @param xp values for plotting (same scale as \code{x})
 #' @param save_data whether to save the data elements in the returned object
 #' @param save_mod whether to save the model in the returned object
+#' @param pw save pointwise standard errors for plotting
 #' @param ... additional arguments for \code{mgcv::gam} and \code{mgcv::s}
 #'
 #' @returns list of class \code{gam_cal}
 #' @keywords internal
 #' @export
-gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, ...){
+gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...){
 
   dots <- list(...)
   if ("bs" %in% names(dots)) bs <- dots[['bs']] else bs <- "tp"
@@ -29,9 +30,17 @@ gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, ...){
   p_c <- as.vector(predict(mod, type = "response"))
 
   if (!is.null(xp)){
-    p_c_plot <- as.vector(predict(mod, newdata = data.frame(x = xp), type = "response"))
+    if (pw){
+      p_c_p <- predict(mod, newdata = data.frame(x = xp), type = "response", se.fit = T)
+      p_c_plot <- as.vector(p_c_p$fit)
+      p_c_plot_se <- as.vector(p_c_p$se)
+    } else{
+      p_c_plot <- as.vector(predict(mod, newdata = data.frame(x = xp), type = "response"))
+      p_c_plot_se <- NULL
+    }
   } else{
     p_c_plot <- NULL
+    p_c_plot_se <- NULL
   }
 
   out <- list(
@@ -39,9 +48,10 @@ gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, ...){
     p = if (save_data) p else NULL,
     x = if (save_data) x else NULL,
     xp = if (save_data) xp else NULL,
-    p_c = p_c, # predict(mod, type = "response"),
+    p_c = p_c,
     metrics = cal_metrics(p, p_c),
-    p_c_plot = p_c_plot, # predict(mod, newdata = Xp, type = "response"),
+    p_c_plot = p_c_plot,
+    p_c_plot_se = p_c_plot_se,
     model = if (save_mod) mod else NULL,
     smooth_args = list(
       smooth = "gam",

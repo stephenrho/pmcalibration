@@ -6,11 +6,12 @@
 #' @param xp values for plotting (same scale as \code{x})
 #' @param save_data whether to save y, p, x, xp in the returned object
 #' @param save_mod whether to save the model in the returned object
+#' @param pw save pointwise standard errors for plotting
 #'
 #' @returns list of class \code{loess_cal}
 #' @keywords internal
 #' @export
-loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T){
+loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T, pw = F){
 
   mod <- loess(y ~ x)
   # TODO
@@ -19,10 +20,19 @@ loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T){
   # would allow extrapolation on bs resamples but seems to take longer...
 
   p_c <- predict(mod, newdata = x)
+
   if (!is.null(xp)){
-    p_c_plot <- predict(mod, newdata = xp)
+    if (pw){
+      p_c_p <- predict(mod, newdata = data.frame(x = xp), se = T)
+      p_c_plot <- as.vector(p_c_p$fit)
+      p_c_plot_se <- as.vector(p_c_p$se)
+    } else{
+      p_c_plot <- predict(mod, newdata = xp)
+      p_c_plot_se <- NULL
+    }
   } else{
     p_c_plot <- NULL
+    p_c_plot_se <- NULL
   }
 
   out <- list(
@@ -33,6 +43,7 @@ loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T){
     p_c = p_c,
     metrics = cal_metrics(p, p_c),
     p_c_plot = p_c_plot,
+    p_c_plot_se = p_c_plot_se,
     model = if (save_mod) mod else NULL,
     smooth_args = list(smooth = "loess")
   )
