@@ -4,12 +4,14 @@
 \alias{plot.pmcalibration}
 \title{Plot a calibration curve}
 \usage{
-\method{plot}{pmcalibration}(x, ...)
+\method{plot}{pmcalibration}(x, conf_level = 0.95, ...)
 }
 \arguments{
 \item{x}{a \code{pmcalibration} calibration curve}
 
-\item{...}{other args for plot()}
+\item{conf_level}{width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals}
+
+\item{...}{other args for \code{plot()} (\code{lim} and \code{lab} can be specified)}
 }
 \description{
 This is for a quick and dirty calibration curve plot.

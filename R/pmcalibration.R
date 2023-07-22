@@ -5,10 +5,23 @@
 #'
 #' @param y a binary outcome
 #' @param p predicted probabilities from a clinical prediction model
-#' @param method use regression splines (glm), generalized additive models (gam), or local regression smoothers (lowess, loess) to estimate calibration curve
-#' @param smooth what smooth to use. For method = 'glm' and smooth = 'none' logistic calibration is performed
-#' @param ci what kind of confidence intervals to compute? 'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model). 'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.
-#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
+#' @param smooth what smooth to use. Available options:
+#' \itemize{
+#' \item{'rcs' = restricted cubic spline using \code{rms::rcs}. Optional arguments for this smooth are \code{nk} (number of knots; defaults to 5) and \code{knots} (knot positions; set by \code{Hmisc::rcs.eval} if not specified)}
+#' \item{'ns' = natural spline using \code{splines::ns}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::ns})}
+#' \item{'bs' = B-spline using \code{splines::bs}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::bs})}
+#' \item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s})}
+#' \item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}}
+#' \item{'loess' = uses \code{loess} with all defaults}
+#' \item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T})}
+#' }
+#' 'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")}
+#' @param ci what kind of confidence intervals to compute?
+#' \itemize{
+#' \item{'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
+#' \item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled x)}
+#' }
+#' Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.
 #' @param n number of simulations or bootstrap resamples
 #' @param logitp fit calibration curve on logit transform of \code{p}
 #' @param neval number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting)
@@ -21,19 +34,16 @@
 #' @export
 pmcalibration <- function(y, p,
                           smooth=c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
-                          ci = c("sim", "boot", "none"), conf_level=.95,
+                          ci = c("sim", "boot", "none"), #conf_level=.95,
                           n=1000, logitp = T, neval=100, ...){
 
   # TODO
   # - add ci option "pw" for pointwise (plot only)
-  # - implement nveval = 0 | NULL --> dont save plot info (just set pplot to NULL?) (DONE)
-  # - lowess_cal and loess_cal and associated boot methods (DONE)
-  # - gam and associated methods (DONE)
-  # - add print method for pmcalibration
-  # - merge method and smooth - does it make sense to have separate? (DONE)
-  # - function to extract plot data (get_cc()) (DONE)
+  # - clean up print method for pmcalibrationsummary
   # - if 'knots' specified then use same knots on each boot sample (DONE except gam)
-  # - allow Boundary.knots arg for ns/bs
+  # - if smooth = 'none' print metrics for logistic calibration? or remove this option...
+  # - vignettes in external and internal validation using pmcalibration
+  # - save the boot/sim samples and have summary calculate 95% CIs? (DONE)
 
   dots <- list(...)
 
@@ -81,26 +91,50 @@ pmcalibration <- function(y, p,
 
   if (ci == "boot"){
     b.cal <- run_boots(cal, R = n, cores = cores)
-    conf.int <- get_ci(b.cal)
+    #conf.int <- get_ci(b.cal, conf_level = conf_level)
   } else if (ci == "sim"){
     b.cal <- simb(cal, R = n)
-    conf.int <- get_ci(b.cal)
+    #conf.int <- get_ci(b.cal, conf_level = conf_level)
   } else{
-    conf.int <- NULL
+    #conf.int <- NULL
+    b.cal <- NULL
+  }
+
+  if (!is.null(b.cal)){
+    #extract samples
+    metrics.samples <- do.call(rbind, lapply(b.cal, function(samp) samp$metrics))
+    if (any(is.na(metrics.samples))){
+      warning("Metrics samples contain NAs. This is probably due to a loess not extrapolating for to-be-plotted values...")
+    }
+
+    if (!is.null(b.cal[[1]]$p_c_plot)){
+      plot.samples <- do.call(rbind, lapply(b.cal, function(samp) samp$p_c_plot))
+      if (any(is.na(plot.samples))){
+        warning("Plot samples contain NAs. This is probably due to a loess not extrapolating for to-be-plotted values...")
+      }
+    } else{
+      plot.samples <- NULL
+    }
+  } else{
+    metrics.samples <- NULL
+    plot.samples <- NULL
   }
 
   out <- list(
     metrics = cal$metrics,
-    conf.int = conf.int$metrics,
+    #conf.int = conf.int$metrics,
+    metrics.samples = metrics.samples,
     plot = list(
       p = pplot,
       p_c_plot = cal$p_c_plot,
-      conf.int = conf.int$p_c_plot
+      plot.samples = plot.samples
+      #conf.int = conf.int$p_c_plot
     ),
     smooth = smooth,
-    ci = ci, conf_level = conf_level,
+    ci = ci, #conf_level = conf_level,
     n = n,
-    smooth_ags = cal$smooth_args
+    smooth_args = cal$smooth_args,
+    logitp = logitp
   )
 
   class(out) <- "pmcalibration"

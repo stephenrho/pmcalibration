@@ -4,10 +4,12 @@
 \alias{get_cc}
 \title{Extract plot data from \code{pmcalibration} object}
 \usage{
-get_cc(x)
+get_cc(x, conf_level = 0.95)
 }
 \arguments{
 \item{x}{\code{pmcalibration} object}
+
+\item{conf_level}{width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals}
 }
 \value{
 data frame for plotting with 4 columns

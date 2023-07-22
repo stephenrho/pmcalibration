@@ -18,6 +18,7 @@ a named vector of metrics based on absolute difference between predicted and cal
  \item{E50 - median absolute difference}
  \item{E90 - 90th percentile absolute difference}
  \item{Emax - maximum absolute difference}
+ \item{ECI - average squared difference. Estimated calibration index (Van Hoorde et al. 2015)}
 }
 }
 \description{
@@ -25,6 +26,8 @@ Calculates metrics used for summarizing calibration curves. See Austin and Steye
 }
 \references{
 Austin PC, Steyerberg EW. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
+
+Van Hoorde, K., Van Huffel, S., Timmerman, D., Bourne, T., Van Calster, B. (2015). A spline-based tool to assess and visualize the calibration of multiclass risk predictions. \emph{Journal of Biomedical Informatics}, 54, pp. 283-93
 
 Van Calster, B., Nieboer, D., Vergouwe, Y., De Cock, B., Pencina M., Steyerberg E.W. (2016). A calibration hierarchy for risk models was defined: from utopia to empirical data. \emph{Journal of Clinical Epidemiology}, 74, pp. 167-176
 }

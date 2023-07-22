@@ -8,8 +8,7 @@ pmcalibration(
   y,
   p,
   smooth = c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
-  ci = c("sim", "boot"),
-  conf_level = 0.95,
+  ci = c("sim", "boot", "none"),
   n = 1000,
   logitp = T,
   neval = 100,
@@ -21,11 +20,24 @@ pmcalibration(
 
 \item{p}{predicted probabilities from a clinical prediction model}
 
-\item{smooth}{what smooth to use. For method = 'glm' and smooth = 'none' logistic calibration is performed}
+\item{smooth}{what smooth to use. Available options:
+\itemize{
+\item{'rcs' = restricted cubic spline using \code{rms::rcs}. Optional arguments for this smooth are \code{nk} (number of knots; defaults to 5) and \code{knots} (knot positions; set by \code{Hmisc::rcs.eval} if not specified)}
+\item{'ns' = natural spline using \code{splines::ns}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::ns})}
+\item{'bs' = B-spline using \code{splines::bs}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::bs})}
+\item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s})}
+\item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}}
+\item{'loess' = uses \code{loess} with all defaults}
+\item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T})}
+}
+'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")}}
 
-\item{ci}{what kind of confidence intervals to compute? 'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model). 'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.}
-
-\item{conf_level}{width of the confidence interval (0.95 gives 95\% CI)}
+\item{ci}{what kind of confidence intervals to compute?
+\itemize{
+\item{'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
+\item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled x)}
+}
+Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.}
 
 \item{n}{number of simulations or bootstrap resamples}
 
@@ -34,8 +46,6 @@ pmcalibration(
 \item{neval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting)}
 
 \item{...}{additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument}
-
-\item{method}{use regression splines (glm), generalized additive models (gam), or local regression smoothers (lowess, loess) to estimate calibration curve}
 }
 \value{
 a \code{pmcalibration} object containing calibration metrics and values for plotting

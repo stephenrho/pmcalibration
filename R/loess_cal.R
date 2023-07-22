@@ -34,7 +34,7 @@ loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T){
     metrics = cal_metrics(p, p_c),
     p_c_plot = p_c_plot,
     model = if (save_mod) mod else NULL,
-    smooth_args = NULL
+    smooth_args = list(smooth = "loess")
   )
 
   class(out) <- "loess_cal"

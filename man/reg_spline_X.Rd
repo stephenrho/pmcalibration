@@ -17,10 +17,10 @@ reg_spline_X(x, xp, smooth, ...)
 }
 \value{
 a list containing
-\describe{
-   \item{\code{X} the design matrix for the data}
-   \item{\code{Xp} the design matrix for plotting}
- }
+\itemize{
+\item{\code{X} the design matrix for the data}
+\item{\code{Xp} the design matrix for plotting}
+}
 }
 \description{
 Make a design matrix for regression spline

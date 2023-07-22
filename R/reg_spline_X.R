@@ -6,10 +6,10 @@
 #' @param ... additional arguments for specific splines ('nk' or 'knots' for 'rcs', 'df' or 'knots' for 'ns' or 'bs')
 #'
 #' @returns a list containing
-#' \describe{
-#'    \item{\code{X} the design matrix for the data}
-#'    \item{\code{Xp} the design matrix for plotting}
-#'  }
+#' \itemize{
+#' \item{\code{X} the design matrix for the data}
+#' \item{\code{Xp} the design matrix for plotting}
+#' }
 #' @keywords internal
 #' @export
 reg_spline_X <- function(x, xp, smooth, ...){
@@ -42,6 +42,7 @@ reg_spline_X <- function(x, xp, smooth, ...){
   } else if (smooth %in% c("ns", "bs")){
     if ("df" %in% names(dots)) df <- dots[['df']] else df <- NULL
     if ("knots" %in% names(dots)) knots <- dots[['knots']] else knots <- NULL
+    if ("Boundary.knots" %in% names(dots)) Boundary.knots <- dots[['Boundary.knots']] else Boundary.knots <- NULL
 
     if (is.null(df) & is.null(knots)){
       warning("for smooth = ns or bs either df or knots must be provided. Defaulting to df = 6")
@@ -50,9 +51,15 @@ reg_spline_X <- function(x, xp, smooth, ...){
 
     # could use getFromNamespace(x = smooth, ns = "splines")
     if (smooth == "ns"){
-      X <- splines::ns(x, df = df, knots = knots, intercept = F)
+      X <- splines::ns(x, df = df,
+                       knots = knots,
+                       Boundary.knots = if (!is.null(Boundary.knots)) Boundary.knots else range(x),
+                       intercept = F)
     } else if (smooth == "bs"){
-      X <- splines::bs(x, df = df, knots = knots, intercept = F)
+      X <- splines::bs(x, df = df,
+                       knots = knots,
+                       Boundary.knots = if (!is.null(Boundary.knots)) Boundary.knots else range(x),
+                       intercept = F)
     }
     if (!is.null(xp)){
       #Xp <- splines:::predict(X, newx = xp)
@@ -61,12 +68,14 @@ reg_spline_X <- function(x, xp, smooth, ...){
       Xp <- NULL
     }
 
-    kno <- c(attr(X, "knots"), attr(X, "Boundary.knots"))
-    kno <- kno[order(kno)]
+    # kno <- c(attr(X, "knots"), attr(X, "Boundary.knots"))
+    # kno <- kno[order(kno)]
     smooth_args <- list(smooth = smooth,
                         df = df,
                         knots = knots, # knots specified by user
-                        knots_used = kno)
+                        Boundary.knots = Boundary.knots, # set by user
+                        knots_used = attr(X, "knots"),
+                        Boundary.knots_used = attr(X, "Boundary.knots"))
   }
 
   X <- data.frame(X)

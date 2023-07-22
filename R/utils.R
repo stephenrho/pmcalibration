@@ -1,85 +1,90 @@
-#' Check if method and smooth are allowed together (not used anymore)
+#' Summarize a pmcalibration object
 #'
-#' @keywords internal
-#' @export
-check_method_smooth <- function(method, smooth){
-
-  allowed <- list("glm" = c("none", "ns", "bs", "rcs"),
-                  "gam" = c("s"))
-
-  if (method %in% c("glm", "gam")){
-    if (!smooth %in% allowed[[method]]){
-      stop(sprintf("smooth = %s is not allowed with method = %s", smooth, method))
-    }
-  } else if (method %in% c("loess", "lowess") & !is.null(smooth)){
-    warning("smooth is ignored for loess and lowess")
-  }
-}
-
-#' Get confidence interval from objects created with \code{boot()} or \code{simb()}
+#' @param x object created with \code{pmcalibration}
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
 #'
-#' @keywords internal
+#' @return prints a summary of calibration metrics. Returns a list of two tables: \code{metrics} and \code{plot}
 #' @export
-get_ci <- function(b, conf_level = .95){
+summary.pmcalibration <- function(x, conf_level = .95){
+
+  checkmate::assert_double(conf_level, len = 1)
 
   probs <- c((1 - conf_level)/2, 1 - (1 - conf_level)/2)
 
-  m <- do.call(rbind, lapply(b, function(x) x$metrics))
+  m_tab <- data.frame(Estimate = x$metrics)
 
-  if (any(is.na(m))){
-    warning("Bootstrap resamples contain NAs. This is probably due to a loess not extrapolating for to-be-plotted values...")
+  if (!is.null(x$metrics.samples)){
+    m_ci <- t(apply(x$metrics.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
+    colnames(m_ci) <- c("lower", "upper")
+    m_tab <- cbind(m_tab, m_ci)
   }
 
-  m_ci <- t(apply(m, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
+  plot_tab <- data.frame(p = x$plot$p, p_c = x$plot$p_c_plot)
 
-  if (!is.null(b[[1]]$p_c_plot)){
-    pplot <- do.call(rbind, lapply(b, function(x) x$p_c_plot))
-    if (any(is.na(pplot))){
-      warning("Bootstrap resamples contain NAs. This is probably due to a loess not extrapolating for to-be-plotted values...")
-    }
-
-    pplot_ci <- t(apply(pplot, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
-  } else{
-    pplot_ci <- NULL
+  if (!is.null(x$plot$plot.samples)){
+    p_ci <- t(apply(x$plot$plot.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
+    colnames(p_ci) <- c("lower", "upper")
+    plot_tab <- cbind(plot_tab, p_ci)
   }
 
-  cis <- list(metrics = m_ci, p_c_plot = pplot_ci)
+  #print(m_tab, digits = 3)
 
-  return(cis)
+  out <- list(
+    metrics = m_tab,
+    plot = plot_tab,
+    smooth = x$smooth,
+    ci = x$ci,
+    conf_level = conf_level,
+    n = x$n,
+    smooth_args = x$smooth_args,
+    logitp = x$logitp
+    )
+
+  class(out) <- "pmcalibratesummary"
+
+  return(out)
 }
 
-#' Plot a calibration curve
-#'
-#' @description
-#' This is for a quick and dirty calibration curve plot.
-#' Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
-#'
-#' @param x a \code{pmcalibration} calibration curve
-#' @param ... other args for plot()
-#'
 #' @export
-plot.pmcalibration <- function(x, ...){
+print.pmcalibratesummary <- function(x, digits = 2){
+  smoothtext = list("none" = "no smooth",
+                    "rcs" = "a restricted cubic spline (see ?rms::rcs)",
+                    "ns" = "a natural cubic spline (see ?splines::ns)",
+                    "bs" = "a B-spline (see ?splines::bs)",
+                    "gam" = "a generalized additive model (see ?mgcv::s)"
+                    )
 
-  dots <- list(...)
+  citext <- list("boot" = "bootstrap resampling",
+                 "sim" = "simulation based inference"
+                 )
 
-  p <- x$plot$p
-  p_c <- x$plot$p_c_plot
-  ci <- x$plot$conf.int
+  transp <- if (x$logitp) "logit transformed" else "untransformed"
 
-  if ("xlim" %in% names(dots)) xlim <- dots[['xlim']] else xlim <- c(0,1)
-  if ("ylim" %in% names(dots)) ylim <- dots[['ylim']] else ylim <- c(0,1)
-  if ("xlab" %in% names(dots)) xlab <- dots[['xlab']] else xlab <- "Predicted Probability"
-  if ("ylab" %in% names(dots)) ylab <- dots[['ylab']] else ylab <- "Estimated Probability"
+  cat("Calibration metrics based on a calibration curve estimated via",
+      smoothtext[[x$smooth]], "using", transp, "predicted probabilities.\n\n")
 
-  plot(x = p, y = p_c, type="l", xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab)
-  lines(x = p, y = ci[,1], lty=2)
-  lines(x = p, y = ci[,2], lty=2)
+  print(x$metrics, digits = digits)
 
+  if (x$ci %in% names(citext)){
+    cat("\n")
+    cat(sprintf("%.0f%%", x$conf_level*100),
+        "confidence intervals calculated via",
+        citext[[x$ci]], "with", x$n, "replicates.\n")
+  }
+
+  invisible(x)
 }
+
+#' @export
+print.pmcalibration <- function(x, digits = 2, conf_level = .95) {
+  print(summary(x, conf_level = conf_level), digits = digits)
+}
+
 
 #' Extract plot data from \code{pmcalibration} object
 #'
 #' @param x \code{pmcalibration} object
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
 #'
 #' @return data frame for plotting with 4 columns
 #' \itemize{
@@ -98,15 +103,51 @@ plot.pmcalibration <- function(x, ...){
 #'  geom_line() +
 #'  geom_ribbon(alpha = 1/4)
 #'  }
-get_cc <- function(x){
-  cc <- data.frame(
-    p = x$plot$p,
-    p_c = x$plot$p_c_plot,
-    lower = x$plot$conf.int[, 1],
-    upper = x$plot$conf.int[, 2]
-    )
+get_cc <- function(x, conf_level = .95){
+  # cc <- data.frame(
+  #   p = x$plot$p,
+  #   p_c = x$plot$p_c_plot,
+  #   lower = x$plot$conf.int[, 1],
+  #   upper = x$plot$conf.int[, 2]
+  #   )
+
+  cc <- summary(x, conf_level = conf_level)$plot
   return(cc)
 }
+
+#' Plot a calibration curve
+#'
+#' @description
+#' This is for a quick and dirty calibration curve plot.
+#' Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
+#'
+#' @param x a \code{pmcalibration} calibration curve
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
+#' @param ... other args for \code{plot()} (\code{lim} and \code{lab} can be specified)
+#'
+#' @export
+plot.pmcalibration <- function(x, conf_level = .95, ...){
+
+  dots <- list(...)
+
+  # pdat <- summary.pmcalibration(x, conf_level = conf_level)
+  # pdat <- pdat$plot
+  pdat <- get_cc(x, conf_level = conf_level)
+
+  if ("xlim" %in% names(dots)) xlim <- dots[['xlim']] else xlim <- c(0,1)
+  if ("ylim" %in% names(dots)) ylim <- dots[['ylim']] else ylim <- c(0,1)
+  if ("xlab" %in% names(dots)) xlab <- dots[['xlab']] else xlab <- "Predicted Probability"
+  if ("ylab" %in% names(dots)) ylab <- dots[['ylab']] else ylab <- "Estimated Probability"
+
+  plot(x = pdat$p, y = pdat$p_c, type="l",
+       xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab)
+
+  if ("lower" %in% colnames(pdat)){
+    lines(x = pdat$p, y = pdat$lower, lty=2)
+    lines(x = pdat$p, y = pdat$upper, lty=2)
+  }
+}
+
 
 #' @keywords internal
 #' @export

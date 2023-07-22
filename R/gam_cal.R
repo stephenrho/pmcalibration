@@ -44,6 +44,7 @@ gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, ...){
     p_c_plot = p_c_plot, # predict(mod, newdata = Xp, type = "response"),
     model = if (save_mod) mod else NULL,
     smooth_args = list(
+      smooth = "gam",
       bs = bs,
       k = k,
       fx = fx,
