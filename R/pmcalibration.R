@@ -44,7 +44,19 @@ pmcalibration <- function(y, p,
   # - vignettes in external and internal validation using pmcalibration
   # - save the boot/sim samples and have summary calculate 95% CIs? (DONE)
 
+  call <- match.call()
   dots <- list(...)
+
+  chk::vld_compatible_lengths(y, p)
+
+  # method <- match.arg(method)
+  smooth <- match.arg(smooth)
+  ci <- match.arg(ci)
+
+  if (smooth == "none" & isFALSE(logitp)){
+    warning("for smooth = 'none' (logistic calibration) logitp is set to TRUE")
+    logitp <- T
+  }
 
   if (ci == "boot"){
     if ("cores" %in% names(dots)){
@@ -53,12 +65,6 @@ pmcalibration <- function(y, p,
       cores <- 1
     }
   }
-
-  chk::vld_compatible_lengths(y, p)
-
-  # method <- match.arg(method)
-  smooth <- match.arg(smooth)
-  ci <- match.arg(ci)
 
   # check_method_smooth(method, smooth)
 
@@ -128,6 +134,7 @@ pmcalibration <- function(y, p,
   }
 
   out <- list(
+    call = call,
     metrics = cal$metrics,
     #conf.int = conf.int$metrics,
     metrics.samples = metrics.samples,

@@ -91,6 +91,69 @@ print.pmcalibration <- function(x, digits = 2, conf_level = .95) {
 }
 
 
+#' Summarize a logistic_cal object
+#'
+#' @param x a \code{logistic_cal} object
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
+#'
+#' @return estimates and conf_level*100 confidence intervals for calibration intercept and calibration slope.
+#' The former is estimated from a \code{glm} (family = binomial("logit")) where the linear predictor (logit(p)) is included as an offset.
+#'
+#' @export
+summary.logistic_cal <- function(x, conf_level = .95){
+  ci_ci <- suppressMessages(confint(x$calibration_intercept, level = conf_level)) # profile cis
+  cs_ci <- suppressMessages(confint(x$calibration_slope, level = conf_level))
+  cs_ci <- cs_ci["LP", ]
+
+  names(ci_ci) <- names(cs_ci) <- c('lower', "upper")
+
+  ci_s <- summary.glm(x$calibration_intercept)
+  cs_s <- summary.glm(x$calibration_slope)
+
+  ci_s <- ci_s$coefficients
+  cs_s <- cs_s$coefficients[2, ]
+
+  cs_s[[3]] <- (cs_s[[1]] - 1)/cs_s[[2]]
+
+  cs_s[[4]] <- 2*pnorm(q = abs(cs_s[[3]]), lower.tail = F)
+
+  c_tab <- rbind(
+    cbind(ci_s, t(ci_ci)),
+    cbind(t(cs_s), t(cs_ci))
+  )
+
+  rownames(c_tab) <- c("Calibration Intercept", "Calibration Slope")
+
+  c_tab <- as.data.frame(c_tab)
+
+  out <- list(stats = c_tab, conf_level = conf_level)
+
+  class(out) <- c("logistic_calsummary")
+
+  return(out)
+}
+
+#' @export
+print.logistic_calsummary <- function(x, digits=2){
+  stats <- x$stats
+  stats$`Pr(>|z|)` <- format.pval(stats$`Pr(>|z|)`, digits = digits, eps = 0.001)
+
+  cat("Logistic calibration intercept and slope:\n\n")
+
+  #print.data.frame(out, digits=digits)
+  print(format.data.frame(stats, digits=digits, nsmall=digits))
+  cat("\n")
+  cat("z-value for calibration slope is relative to slope = 1.\n")
+  cat("lower and upper are the bounds of", sprintf("%.0f%%", x$conf_level*100), "profile confidence intervals.")
+
+  invisible(x)
+}
+
+#' @export
+print.logistic_cal <- function(x, digits = 2, conf_level = .95) {
+  print(summary(x, conf_level = conf_level), digits = digits)
+}
+
 #' Extract plot data from \code{pmcalibration} object
 #'
 #' @param x \code{pmcalibration} object
