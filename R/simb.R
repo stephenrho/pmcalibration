@@ -6,7 +6,7 @@
 #' @return simulated calibration metrics and values for plotting
 #' @keywords internal
 #' @export
-simb <- function(cal, ...){
+simb <- function(cal, R){
   UseMethod("simb", cal)
 }
 
@@ -82,13 +82,13 @@ simb.gam_cal <- function(cal, R = 1000){
 
 #' @rdname simb
 #' @export
-simb.lowess_cal <- function(cal, ...){
+simb.lowess_cal <- function(cal, R){
   stop("ci = 'sim' is not available for lowess or loess calibration curves (try ci = 'boot')")
 }
 
 #' @rdname simb
 #' @export
-simb.loess_cal <- function(cal, ...){
+simb.loess_cal <- function(cal, R){
   stop("ci = 'sim' is not available for lowess or loess calibration curves (try ci = 'boot')")
 }
 

@@ -1,11 +1,14 @@
 #' Summarize a pmcalibration object
 #'
-#' @param x object created with \code{pmcalibration}
+#' @param object object created with \code{pmcalibration}
 #' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
+#' @param ... ignored
 #'
 #' @return prints a summary of calibration metrics. Returns a list of two tables: \code{metrics} and \code{plot}
 #' @export
-summary.pmcalibration <- function(x, conf_level = .95){
+summary.pmcalibration <- function(object, conf_level = .95, ...){
+
+  x <- object
 
   checkmate::assert_double(conf_level, len = 1)
 
@@ -47,13 +50,21 @@ summary.pmcalibration <- function(x, conf_level = .95){
     logitp = x$logitp
     )
 
-  class(out) <- "pmcalibratesummary"
+  class(out) <- "pmcalibrationsummary"
 
   return(out)
 }
 
+#' Print summary of pmcalibration object
+#'
+#' @param x a \code{pmcalibrationsummary} object
+#' @param digits number of digits to print
+#' @param ... ignored
+#'
+#' @returns invisible(x) - prints a summary
+#' @rdname print.pmcalibrationsummary
 #' @export
-print.pmcalibratesummary <- function(x, digits = 2){
+print.pmcalibrationsummary <- function(x, digits = 2, ...){
   smoothtext = list("none" = "no smooth",
                     "rcs" = "a restricted cubic spline (see ?rms::rcs)",
                     "ns" = "a natural cubic spline (see ?splines::ns)",
@@ -85,22 +96,35 @@ print.pmcalibratesummary <- function(x, digits = 2){
   invisible(x)
 }
 
+#' print a pmcalibration object
+#'
+#' @param x a \code{pmcalibration} object
+#' @param digits number of digits to print
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
+#' @param ... optional arguments passed to print
+#'
+#' @returns prints a summary
+#'
+#' @rdname print.pmcalibration
 #' @export
-print.pmcalibration <- function(x, digits = 2, conf_level = .95) {
-  print(summary(x, conf_level = conf_level), digits = digits)
+print.pmcalibration <- function(x, digits = 2, conf_level = .95, ...) {
+  print(summary(x, conf_level = conf_level), digits = digits, ...)
 }
 
 
 #' Summarize a logistic_cal object
 #'
-#' @param x a \code{logistic_cal} object
+#' @param object a \code{logistic_cal} object
 #' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
+#' @param ... ignored
 #'
 #' @return estimates and conf_level*100 confidence intervals for calibration intercept and calibration slope.
 #' The former is estimated from a \code{glm} (family = binomial("logit")) where the linear predictor (logit(p)) is included as an offset.
 #'
 #' @export
-summary.logistic_cal <- function(x, conf_level = .95){
+summary.logistic_cal <- function(object, conf_level = .95, ...){
+  x <- object
+
   ci_ci <- suppressMessages(confint(x$calibration_intercept, level = conf_level)) # profile cis
   cs_ci <- suppressMessages(confint(x$calibration_slope, level = conf_level))
   cs_ci <- cs_ci["LP", ]
@@ -133,8 +157,17 @@ summary.logistic_cal <- function(x, conf_level = .95){
   return(out)
 }
 
+#' Print a logistic_cal summary
+#'
+#' @param x a \code{logistic_calsummary} object
+#' @param digits number of digits to print
+#' @param ... ignored
+#'
+#' @returns prints a summary
+#'
+#' @rdname print.logistic_calsummary
 #' @export
-print.logistic_calsummary <- function(x, digits=2){
+print.logistic_calsummary <- function(x, digits=2, ...){
   stats <- x$stats
   stats$`Pr(>|z|)` <- format.pval(stats$`Pr(>|z|)`, digits = digits, eps = 0.001)
 
@@ -149,9 +182,19 @@ print.logistic_calsummary <- function(x, digits=2){
   invisible(x)
 }
 
+#' Print a logistic_cal
+#'
+#' @param x a \code{logistic_cal} object
+#' @param digits number of digits to print
+#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
+#' @param ... optional arguments passed to print
+#'
+#' @returns prints a summary
+#'
+#' @rdname print.logistic_cal
 #' @export
-print.logistic_cal <- function(x, digits = 2, conf_level = .95) {
-  print(summary(x, conf_level = conf_level), digits = digits)
+print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
+  print(summary(x, conf_level = conf_level), digits = digits, ...)
 }
 
 #' Extract plot data from \code{pmcalibration} object
@@ -222,11 +265,50 @@ plot.pmcalibration <- function(x, conf_level = .95, ...){
   }
 }
 
-
+#' Logit
+#'
 #' @keywords internal
 #' @export
 logit <- binomial()$linkfun
 
+#' Inverse logit
+#'
 #' @keywords internal
 #' @export
 invlogit <- binomial()$linkinv
+
+
+#' Simulate a binary outcome with either a quadratic relationship or interaction
+#'
+#' @description
+#' Function for simulating data either with a single 'predictor' variable with a quadratic relationship with logit(p)
+#' or two predictors that interact (see references for examples).
+#'
+#' @param N number of observations to simulate
+#' @param a1 value of the intercept term (in logits). This must be provided along with either \code{a2} or \code{a3}.
+#' @param a2 value of the quadratic coefficient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + a2*x1^2} where \code{x1} is sampled from a standard normal distribution.
+#' @param a3 value of the interaction coeffient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + x2 + x1*x2*a3} where \code{x1} and \code{x2} are sampled from independent standard normal distributions.
+#'
+#' @references Austin, P. C., & Steyerberg, E. W. (2019). The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. Statistics in medicine, 38(21), 4051-4065.
+#' @references Rhodes, S. (2022, November 4). Using restricted cubic splines to assess the calibration of clinical prediction models: Logit transform predicted probabilities first. https://doi.org/10.31219/osf.io/4n86q
+#'
+#' @return a simulated data set with \code{N} rows. Can be split into 'development' and 'validation' sets.
+#' @export
+sim_dat = function(N, a1, a2=NULL, a3=NULL){
+
+  x1 <- rnorm(N)
+  if (is.null(a3)){
+    # m1
+    LP <- a1 + x1 + a2*x1^2
+    y <- rbinom(n = N, size = 1, prob = invlogit(LP))
+    d <- data.frame(x1, y)
+  } else{
+    # m2
+    if (!is.null(a2)) warning("value of a3 is given so a2 will be ignored...")
+    x2 <- rnorm(N)
+    LP <- a1 + x1 + x2 + x1*x2*a3
+    y <- rbinom(n = N, size = 1, prob = invlogit(LP))
+    d <- data.frame(x1, x2, y)
+  }
+  return(d)
+}

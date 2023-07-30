@@ -4,12 +4,14 @@
 \alias{summary.pmcalibration}
 \title{Summarize a pmcalibration object}
 \usage{
-\method{summary}{pmcalibration}(x, conf_level = 0.95)
+\method{summary}{pmcalibration}(object, conf_level = 0.95, ...)
 }
 \arguments{
-\item{x}{object created with \code{pmcalibration}}
+\item{object}{object created with \code{pmcalibration}}
 
 \item{conf_level}{width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals}
+
+\item{...}{ignored}
 }
 \value{
 prints a summary of calibration metrics. Returns a list of two tables: \code{metrics} and \code{plot}

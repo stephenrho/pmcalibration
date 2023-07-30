@@ -8,7 +8,7 @@
 \alias{boot.loess_cal}
 \title{Bootstrap resample a calibration curve object}
 \usage{
-boot(cal, ...)
+boot(cal)
 
 \method{boot}{glm_cal}(cal)
 
@@ -20,8 +20,6 @@ boot(cal, ...)
 }
 \arguments{
 \item{cal}{an object created using one of the \code{cal} functions}
-
-\item{...}{other object specific arguments}
 }
 \value{
 bootstrap resamples of calibration metrics and values for plotting

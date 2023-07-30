@@ -39,6 +39,16 @@ lowess_cal <- function(p, y, x, xp, save_data = T){
   return(out)
 }
 
+#' Get predictions from \code{loewss} fit
+#'
+#' @description
+#' Adapted from \code{rms:::calibrate.default}
+#' Uses \code{approx} with \code{rule} = 2 so that x out of range of initial lowess fit returns min or max (see ?approx)
+#'
+#' @param fit list produced by \code{lowess}
+#' @param x values to produce predictions for
+#'
+#' @returns predicted values
 #' @keywords internal
 #' @export
 predict_lowess <- function(fit, x){

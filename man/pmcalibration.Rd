@@ -28,7 +28,7 @@ pmcalibration(
 \item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s})}
 \item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}}
 \item{'loess' = uses \code{loess} with all defaults}
-\item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T})}
+\item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T}). See \code{\link{logistic_cal}} }
 }
 'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")}}
 

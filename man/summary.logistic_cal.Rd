@@ -4,12 +4,14 @@
 \alias{summary.logistic_cal}
 \title{Summarize a logistic_cal object}
 \usage{
-\method{summary}{logistic_cal}(x, conf_level = 0.95)
+\method{summary}{logistic_cal}(object, conf_level = 0.95, ...)
 }
 \arguments{
-\item{x}{a \code{logistic_cal} object}
+\item{object}{a \code{logistic_cal} object}
 
 \item{conf_level}{width of the confidence interval (0.95 gives 95\% CI)}
+
+\item{...}{ignored}
 }
 \value{
 estimates and conf_level*100 confidence intervals for calibration intercept and calibration slope.

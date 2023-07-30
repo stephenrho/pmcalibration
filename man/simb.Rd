@@ -8,15 +8,15 @@
 \alias{simb.loess_cal}
 \title{Simulation based inference with a calibration curve object}
 \usage{
-simb(cal, ...)
+simb(cal, R)
 
 \method{simb}{glm_cal}(cal, R = 1000)
 
 \method{simb}{gam_cal}(cal, R = 1000)
 
-\method{simb}{lowess_cal}(cal, ...)
+\method{simb}{lowess_cal}(cal, R)
 
-\method{simb}{loess_cal}(cal, ...)
+\method{simb}{loess_cal}(cal, R)
 }
 \arguments{
 \item{cal}{an object created using one of the \code{cal} functions}

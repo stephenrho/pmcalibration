@@ -1,12 +1,11 @@
 #' Bootstrap resample a calibration curve object
 #'
 #' @param cal an object created using one of the \code{cal} functions
-#' @param ... other object specific arguments
 #'
 #' @return bootstrap resamples of calibration metrics and values for plotting
 #' @keywords internal
 #' @export
-boot <- function(cal, ...){
+boot <- function(cal){
   UseMethod("boot", cal)
 }
 
