@@ -18,3 +18,7 @@ Imports:
     mgcv,
     graphics,
     stats
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

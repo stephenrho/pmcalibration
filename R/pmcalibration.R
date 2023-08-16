@@ -25,7 +25,7 @@
 #' Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.
 #' @param n number of simulations or bootstrap resamples
 #' @param logitp fit calibration curve on logit transform of \code{p}
-#' @param neval number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting)
+#' @param neval number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.
 #' @param ... additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument
 #'
 #' @references Austin PC, Steyerberg EW. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
@@ -39,10 +39,8 @@ pmcalibration <- function(y, p,
                           n=1000, logitp = T, neval=100, ...){
 
   # TODO
-  # - add ci option "pw" for pointwise (plot only) (DONE)
-  # - if smooth = 'none' print metrics for logistic calibration? or remove this option...
   # - vignettes in external and internal validation using pmcalibration
-  # - save the boot/sim samples and have summary calculate 95% CIs? (DONE)
+  # - survival methods
 
   call <- match.call()
   dots <- list(...)
@@ -67,11 +65,17 @@ pmcalibration <- function(y, p,
   }
 
   # check_method_smooth(method, smooth)
-
-  if (!is.null(neval) && neval > 0){
-    pplot <- seq(min(p), max(p), length.out = neval)
+  if (length(neval) > 1){
+    if (any(neval < 0) | any(neval > 1)){
+      stop("When providing p for plotting directly via neval, all elements should be between 0 and 1")
+    }
+    pplot <- neval
   } else{
-    pplot <- NULL
+    if (!is.null(neval) && neval > 0){
+      pplot <- seq(min(p), max(p), length.out = neval)
+    } else{
+      pplot <- NULL
+    }
   }
 
   pw <- ci == "pw"

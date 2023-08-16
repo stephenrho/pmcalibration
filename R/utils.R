@@ -301,14 +301,14 @@ sim_dat = function(N, a1, a2=NULL, a3=NULL){
     # m1
     LP <- a1 + x1 + a2*x1^2
     y <- rbinom(n = N, size = 1, prob = invlogit(LP))
-    d <- data.frame(x1, y)
+    d <- data.frame(x1, y, LP)
   } else{
     # m2
     if (!is.null(a2)) warning("value of a3 is given so a2 will be ignored...")
     x2 <- rnorm(N)
     LP <- a1 + x1 + x2 + x1*x2*a3
     y <- rbinom(n = N, size = 1, prob = invlogit(LP))
-    d <- data.frame(x1, x2, y)
+    d <- data.frame(x1, x2, y, LP)
   }
   return(d)
 }

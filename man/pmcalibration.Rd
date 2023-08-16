@@ -44,7 +44,7 @@ Calibration metrics are calculated using each simulation or boot sample. For bot
 
 \item{logitp}{fit calibration curve on logit transform of \code{p}}
 
-\item{neval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting)}
+\item{neval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.}
 
 \item{...}{additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument}
 }
