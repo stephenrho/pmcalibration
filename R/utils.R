@@ -35,6 +35,9 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     p_ci <- x$plot$p_c_plot + t(outer(c(-1, 1)*zcrit, x$plot$p_c_plot_se))
     colnames(p_ci) <- c("lower", "upper")
     plot_tab <- cbind(plot_tab, p_ci)
+    if (x$outcome == "tte"){
+      plot_tab[, 2:4] <- 1 - exp(-plot_tab[, 2:4])
+    }
   }
 
   #print(m_tab, digits = 3)
@@ -47,7 +50,7 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     conf_level = conf_level,
     n = x$n,
     smooth_args = x$smooth_args,
-    logitp = x$logitp
+    transf = x$transf
     )
 
   class(out) <- "pmcalibrationsummary"
@@ -76,7 +79,19 @@ print.pmcalibrationsummary <- function(x, digits = 2, ...){
                  "sim" = "simulation based inference"
                  )
 
-  transp <- if (x$logitp) "logit transformed" else "untransformed"
+  transp <- if (is.function(x$transf)) "logit transformed" else "untransformed"
+  if (is.function(x$transf)){
+    transp <- "transformed (user defined)"
+  } else{
+    if (x$transf == "none"){
+      transp <- "untransformed"
+    } else if (x$transf == "logit"){
+      transp <- "logit transformed"
+    } else if (x$transf == "log-log"){
+      transp <- "complementary log-log transformed"
+    }
+  }
+
 
   cat("Calibration metrics based on a calibration curve estimated via",
       smoothtext[[x$smooth]], "using", transp, "predicted probabilities.\n\n")

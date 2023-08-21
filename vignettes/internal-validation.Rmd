@@ -111,9 +111,9 @@ internal_cal <- function(model_fun, data, pred_fun, y="y", B=100){
     one_boot(model = model, data = data, pred_fun = pred_fun)
   })
   # calculate average optimism for metrics and plot (to make bias corrected curve)
-  metrics_opt <- rbindlist(lapply(opt, \(x) data.frame(t(x[[1]]))))
+  metrics_opt <- rbindlist(lapply(opt, function(x) data.frame(t(x[[1]]))))
   metrics_opt <- apply(metrics_opt, 2, mean)
-  plot_opt <- rbindlist(lapply(opt, \(x) data.frame(t(x[[2]]))))
+  plot_opt <- rbindlist(lapply(opt, function(x) data.frame(t(x[[2]]))))
   plot_opt <- apply(plot_opt, 2, mean)
   # return
   out <- list(

@@ -1,10 +1,11 @@
-#' fits a calibration curve via glm
+#' fits a calibration curve via glm or Cox proportional hazards model
 #'
-#' @param y binary outcome
+#' @param y binary outcome or a time-to-event \code{Surv} object. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.
 #' @param p predicted probabilities
 #' @param x predictor (could be transformation of \code{p})
 #' @param xp values for plotting (same scale as \code{x})
 #' @param smooth 'rcs', 'ns', 'bs', or 'none'
+#' @param time time to calculate survival probabilities at (only relevant if \code{y} is a \code{Surv} object)
 #' @param save_data whether to save the data elements in the returned object
 #' @param save_mod whether to save the model in the returned object
 #' @param pw save pointwise standard errors for plotting
@@ -12,26 +13,50 @@
 #' @returns list of class \code{glm_cal}
 #' @keywords internal
 #' @export
-glm_cal <- function(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ...){
+glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T, pw = F, ...){
+
+  surv <- is(y, "Surv")
+
+  if ( surv & (is.null(time) || length(time) > 1) ) {
+    stop("if y is a Surv object a single time must be specified")
+  }
 
   XX <- reg_spline_X(x = x, xp = xp, smooth = smooth, ...)
   X <- XX$X
   Xp <- XX$Xp
 
   # fit the calibration curve model
-  d <- data.frame(y, X)
-
-  mod <- glm(y ~ ., data = d, family = binomial(link="logit"))
-
-  p_c <- predict(mod, type = "response")
+  if (surv){
+    times <- y[, 1]
+    events <- y[, 2]
+    d <- data.frame(times, events, X)
+    mod <- survival::coxph(survival::Surv(times, events) ~ ., data = d, x = T)
+    p_c <- 1 - exp(-predict(mod, type = "expected",
+                                             newdata = data.frame(times=time, events=1, X)))
+  } else{
+    d <- data.frame(y, X)
+    mod <- glm(y ~ ., data = d, family = binomial(link="logit"))
+    p_c <- predict(mod, type = "response")
+  }
 
   if (!is.null(Xp)){
     if (pw){
-      p_c_p <- predict(mod, newdata = Xp, type = "response", se.fit = T)
+      if (surv){
+        p_c_p <- predict(mod, type = "expected",
+                         newdata = data.frame(times=time, events=1, Xp), se.fit = T)
+        # don't do 1 - exp(-S) until summary
+      } else{
+        p_c_p <- predict(mod, newdata = Xp, type = "response", se.fit = T)
+      }
       p_c_plot <- p_c_p$fit
       p_c_plot_se <- p_c_p$se
     } else{
-      p_c_plot <- predict(mod, newdata = Xp, type = "response")
+      if (surv){
+        p_c_plot <- 1 - exp(-predict(mod, type = "expected",
+                            newdata = data.frame(times=time, events=1, Xp)))
+      } else{
+        p_c_plot <- predict(mod, newdata = Xp, type = "response")
+      }
       p_c_plot_se <- NULL
     }
   } else{
@@ -51,7 +76,9 @@ glm_cal <- function(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ..
     p_c_plot = p_c_plot,
     p_c_plot_se = p_c_plot_se,
     model = if (save_mod) mod else NULL,
-    smooth_args = XX$smooth_args
+    smooth_args = XX$smooth_args,
+    time = time,
+    outcome = ifelse(surv, "tte", "binary")
   )
 
   class(out) <- "glm_cal"

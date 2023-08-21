@@ -5,6 +5,7 @@
 ## usethis namespace: start
 #' @importFrom graphics abline
 #' @importFrom graphics lines
+#' @importFrom methods is
 #' @importFrom stats approx
 #' @importFrom stats binomial
 #' @importFrom stats coef

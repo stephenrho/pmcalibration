@@ -17,8 +17,15 @@ Imports:
     chk,
     mgcv,
     graphics,
-    stats
+    stats,
+    methods,
+    survival,
+    pbapply,
+    parallel
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    data.table,
+    ggplot2,
+    rms
 VignetteBuilder: knitr

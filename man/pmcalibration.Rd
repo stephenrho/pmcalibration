@@ -8,29 +8,32 @@ pmcalibration(
   y,
   p,
   smooth = c("none", "ns", "bs", "rcs", "gam", "lowess", "loess"),
+  time = NULL,
   ci = c("sim", "boot", "pw", "none"),
   n = 1000,
-  logitp = T,
+  transf = NULL,
   neval = 100,
   ...
 )
 }
 \arguments{
-\item{y}{a binary outcome}
+\item{y}{a binary or time-to-event outcome. Latter must be an object created via \code{survival::Surv}. Only right censored outcomes.}
 
-\item{p}{predicted probabilities from a clinical prediction model}
+\item{p}{predicted probabilities from a clinical prediction model. For a time-to-event object \code{time} must be specified and \code{p} are predicted probabilities of the outcome happening by \code{time} units of time follow-up.}
 
 \item{smooth}{what smooth to use. Available options:
 \itemize{
-\item{'rcs' = restricted cubic spline using \code{rms::rcs}. Optional arguments for this smooth are \code{nk} (number of knots; defaults to 5) and \code{knots} (knot positions; set by \code{Hmisc::rcs.eval} if not specified)}
-\item{'ns' = natural spline using \code{splines::ns}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::ns})}
-\item{'bs' = B-spline using \code{splines::bs}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::bs})}
-\item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s})}
-\item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}}
-\item{'loess' = uses \code{loess} with all defaults}
+\item{'rcs' = restricted cubic spline using \code{rms::rcs}. Optional arguments for this smooth are \code{nk} (number of knots; defaults to 5) and \code{knots} (knot positions; set by \code{Hmisc::rcs.eval} if not specified) }
+\item{'ns' = natural spline using \code{splines::ns}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::ns}) }
+\item{'bs' = B-spline using \code{splines::bs}. Optional arguments are \code{df} (default = 6), \code{knots}, \code{Boundary.knots} (see \code{?splines::bs}) }
+\item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s}) }
+\item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}. Only for binary outcomes.}
+\item{'loess' = uses \code{loess} with all defaults. Only for binary outcomes. }
 \item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T}). See \code{\link{logistic_cal}} }
 }
-'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")}}
+'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} or \code{survival::coxph} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")} for a binary outcome or \code{mgcv::cox.ph} when \code{y} is time-to-event.}
+
+\item{time}{what follow up time do the predicted probabilities correspond to? Only used if \code{y} is a \code{Surv} object}
 
 \item{ci}{what kind of confidence intervals to compute?
 \itemize{
@@ -42,7 +45,7 @@ Calibration metrics are calculated using each simulation or boot sample. For bot
 
 \item{n}{number of simulations or bootstrap resamples}
 
-\item{logitp}{fit calibration curve on logit transform of \code{p}}
+\item{transf}{transformation to be applied to \code{p} prior to fitting calibration curve. Valid options are 'logit', 'log-log', 'none', or a function (must retain order of \code{p}). If unspecified defaults to 'logit' for binary outcomes and 'log-log' for time-to-event outcomes.}
 
 \item{neval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.}
 
@@ -55,7 +58,9 @@ a \code{pmcalibration} object containing calibration metrics and values for plot
 Assess calibration of clinical prediction models (agreement between predicted and observed probabilities) via different smooths.
 }
 \references{
-Austin PC, Steyerberg EW. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
+Austin P. C., Steyerberg E. W. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
 
 Van Calster, B., Nieboer, D., Vergouwe, Y., De Cock, B., Pencina M., Steyerberg E.W. (2016). A calibration hierarchy for risk models was defined: from utopia to empirical data. \emph{Journal of Clinical Epidemiology}, 74, pp. 167-176
+
+Austin, P. C., Harrell Jr, F. E., & van Klaveren, D. (2020). Graphical calibration curves and the integrated calibration index (ICI) for survival models. \emph{Statistics in Medicine}, 39(21), 2714-2742.
 }

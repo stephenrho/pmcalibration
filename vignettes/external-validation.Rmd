@@ -53,7 +53,7 @@ In the example below, we fit a calibration curve using `mgcv::gam` via a penaliz
 ```{r}
 (cc <- pmcalibration(y = y, p = p, 
                      smooth = "gam", bs = "tp", 
-                     k = 10, logitp = T, 
+                     k = 10, transf="logit",
                      ci = "sim", method="REML"))
 
 ```
@@ -77,8 +77,9 @@ Or one could use `get_cc` to extract data for plotting with method of your choic
 ```{r, fig.height=5, fig.width=6}
 library(ggplot2)
 
-get_cc(cc) |>
-  ggplot(aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
+pcc <- get_cc(cc)
+
+ggplot(pcc, aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
   geom_abline(intercept = 0, slope = 1, lty=2) +
   geom_line() +
   geom_ribbon(alpha = 1/2, fill="lightblue") +
@@ -95,7 +96,8 @@ The model in its current form very slightly underestimates risk at low levels of
 The results above can be compared with `rms::val.prob`. Note that this uses `lowess(p, y, iter=0)` to fit a non-linear (nonparametric) calibration curve. This calibration curve suggests that the overestimation at high levels of predicted risk is even more extreme that that suggested by `gam` calibration curve above. This is particularly evident in the estimate of `Emax` (0.35 vs 0.21). 
 
 ```{r, fig.height=5, fig.width=6}
-rms::val.prob(p = p, y = y)
+library(rms)
+val.prob(p = p, y = y)
 ```
 
 Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calbration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`.

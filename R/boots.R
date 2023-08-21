@@ -18,12 +18,12 @@ boot.glm_cal <- function(cal){
   #
   # b <- glm_cal(y = y[i], p = p[i], X = X[i, ], Xp = Xp, save_data=F, save_mod = F)
 
-  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
+  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp; time <- cal$time
 
   i <- sample(1:length(y), replace = T)
 
   args <- list(
-    y = y[i], p = p[i], x = x[i], xp = xp, save_data=F, save_mod=F
+    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=F, save_mod=F
   )
 
   args <- c(args, cal$smooth_args)
@@ -36,12 +36,12 @@ boot.glm_cal <- function(cal){
 #' @rdname boot
 #' @export
 boot.gam_cal <- function(cal){
-  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
+  y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp; time <- cal$time
 
   i <- sample(1:length(y), replace = T)
 
   args <- list(
-    y = y[i], p = p[i], x = x[i], xp = xp, save_data=F, save_mod=F
+    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=F, save_mod=F
   )
 
   args <- c(args, cal$smooth_args)
@@ -89,9 +89,10 @@ run_boots <- function(cal, R = 1000, cores=1){
 
   cl <- parallel::makeCluster(cores)
   # replace with pbapply?
-  parallel::clusterExport(cl, varlist = c("cal", "R"), #, "calib_glm", "cal_metrics"),
+  parallel::clusterExport(cl, varlist = c("cal", "R"),
                           envir = environment())
-  out <- parallel::parLapply(cl, 1:R, function(i) boot(cal = cal))
+  # out <- parallel::parLapply(cl, 1:R, function(i) boot(cal = cal))
+  out <- pbapply::pblapply(seq(R), function(i) boot(cal = cal), cl = cl)
   parallel::stopCluster(cl)
   closeAllConnections()
 

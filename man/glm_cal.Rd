@@ -2,12 +2,23 @@
 % Please edit documentation in R/glm_cal.R
 \name{glm_cal}
 \alias{glm_cal}
-\title{fits a calibration curve via glm}
+\title{fits a calibration curve via glm or Cox proportional hazards model}
 \usage{
-glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ...)
+glm_cal(
+  y,
+  p,
+  x,
+  xp,
+  smooth,
+  time = NULL,
+  save_data = T,
+  save_mod = T,
+  pw = F,
+  ...
+)
 }
 \arguments{
-\item{y}{binary outcome}
+\item{y}{binary outcome or a time-to-event \code{Surv} object. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.}
 
 \item{p}{predicted probabilities}
 
@@ -16,6 +27,8 @@ glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ...)
 \item{xp}{values for plotting (same scale as \code{x})}
 
 \item{smooth}{'rcs', 'ns', 'bs', or 'none'}
+
+\item{time}{time to calculate survival probabilities at (only relevant if \code{y} is a \code{Surv} object)}
 
 \item{save_data}{whether to save the data elements in the returned object}
 
@@ -27,6 +40,6 @@ glm_cal(y, p, x, xp, smooth, save_data = T, save_mod = T, pw = F, ...)
 list of class \code{glm_cal}
 }
 \description{
-fits a calibration curve via glm
+fits a calibration curve via glm or Cox proportional hazards model
 }
 \keyword{internal}
