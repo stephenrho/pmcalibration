@@ -12,7 +12,7 @@ pmcalibration(
   ci = c("sim", "boot", "pw", "none"),
   n = 1000,
   transf = NULL,
-  neval = 100,
+  eval = 100,
   ...
 )
 }
@@ -29,7 +29,7 @@ pmcalibration(
 \item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s}) }
 \item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}. Only for binary outcomes.}
 \item{'loess' = uses \code{loess} with all defaults. Only for binary outcomes. }
-\item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T}). See \code{\link{logistic_cal}} }
+\item{'none' = logistic regression with single predictor variable (for binary outcome performs logistic calibration when \code{transf = "logit"}). See \code{\link{logistic_cal}} }
 }
 'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} or \code{survival::coxph} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")} for a binary outcome or \code{mgcv::cox.ph} when \code{y} is time-to-event.}
 
@@ -45,9 +45,9 @@ Calibration metrics are calculated using each simulation or boot sample. For bot
 
 \item{n}{number of simulations or bootstrap resamples}
 
-\item{transf}{transformation to be applied to \code{p} prior to fitting calibration curve. Valid options are 'logit', 'log-log', 'none', or a function (must retain order of \code{p}). If unspecified defaults to 'logit' for binary outcomes and 'log-log' for time-to-event outcomes.}
+\item{transf}{transformation to be applied to \code{p} prior to fitting calibration curve. Valid options are 'logit', 'cloglog', 'none', or a function (must retain order of \code{p}). If unspecified defaults to 'logit' for binary outcomes and 'cloglog' (complementary log-log) for time-to-event outcomes.}
 
-\item{neval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.}
+\item{eval}{number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.}
 
 \item{...}{additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument}
 }

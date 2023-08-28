@@ -13,7 +13,7 @@
 #' \item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s}) }
 #' \item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}. Only for binary outcomes.}
 #' \item{'loess' = uses \code{loess} with all defaults. Only for binary outcomes. }
-#' \item{'none' = logistic regression with single predictor variable (performs logistic calibration when \code{logitp = T}). See \code{\link{logistic_cal}} }
+#' \item{'none' = logistic regression with single predictor variable (for binary outcome performs logistic calibration when \code{transf = "logit"}). See \code{\link{logistic_cal}} }
 #' }
 #' 'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} or \code{survival::coxph} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")} for a binary outcome or \code{mgcv::cox.ph} when \code{y} is time-to-event.
 #' @param time what follow up time do the predicted probabilities correspond to? Only used if \code{y} is a \code{Surv} object
@@ -25,8 +25,8 @@
 #' }
 #' Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.
 #' @param n number of simulations or bootstrap resamples
-#' @param transf transformation to be applied to \code{p} prior to fitting calibration curve. Valid options are 'logit', 'log-log', 'none', or a function (must retain order of \code{p}). If unspecified defaults to 'logit' for binary outcomes and 'log-log' for time-to-event outcomes.
-#' @param neval number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.
+#' @param transf transformation to be applied to \code{p} prior to fitting calibration curve. Valid options are 'logit', 'cloglog', 'none', or a function (must retain order of \code{p}). If unspecified defaults to 'logit' for binary outcomes and 'cloglog' (complementary log-log) for time-to-event outcomes.
+#' @param eval number of points (equally spaced between \code{min(p)} and \code{max(p)}) to evaluate for plotting (0 or NULL = no plotting). Can be a vector of probabilities.
 #' @param ... additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument
 #'
 #' @references Austin P. C., Steyerberg E. W. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
@@ -41,31 +41,23 @@ pmcalibration <- function(y, p,
                           ci = c("sim", "boot", "pw", "none"),
                           n=1000,
                           transf = NULL,
-                          neval=100, ...){
+                          eval=100, ...){
 
   # TODO
-  # - survival methods (DONE glm; todo - gam, hare, flexsurv?)
-  # - update summary/print methods for tte outcomes...
-
+  # - survival methods (DONE glm, gam; todo - hare, flexsurv?)
+  # - competing risks? Austin, P. C., Putter, H., Giardiello, D., & van Klaveren, D. (2022). Graphical calibration curves and the integrated calibration index (ICI) for competing risk models. Diagnostic and prognostic research, 6(1), 2.
   call <- match.call()
   dots <- list(...)
 
   chk::vld_compatible_lengths(y, p)
 
-  # method <- match.arg(method)
   smooth <- match.arg(smooth)
   ci <- match.arg(ci)
-
-  # if (smooth == "none" & isFALSE(logitp)){
-  #   warning("for smooth = 'none' (logistic calibration) logitp is set to TRUE")
-  #   logitp <- T
-  # }
 
   surv <- is(y, "Surv")
 
   if (surv & ci == "sim") stop("Simulation based inference not available for time-to-event outcomes")
   if (surv & smooth %in% c("lowess", "loess")) stop("smooth = 'lowess' or 'loess' not available for time-to-event outcomes")
-  if (surv & smooth == "gam") stop("gam currently not implemented for Surv outcomes")
 
   if (ci == "boot"){
     if ("cores" %in% names(dots)){
@@ -75,15 +67,14 @@ pmcalibration <- function(y, p,
     }
   }
 
-  # check_method_smooth(method, smooth)
-  if (length(neval) > 1){
-    if (any(neval < 0) | any(neval > 1)){
-      stop("When providing p for plotting directly via neval, all elements should be between 0 and 1")
+  if (length(eval) > 1){
+    if (any(eval < 0) | any(eval > 1)){
+      stop("When providing p for plotting directly via eval, all elements should be between 0 and 1")
     }
-    pplot <- neval
+    pplot <- eval
   } else{
-    if (!is.null(neval) && neval > 0){
-      pplot <- seq(min(p), max(p), length.out = neval)
+    if (!is.null(eval) && eval > 0){
+      pplot <- seq(min(p), max(p), length.out = eval)
     } else{
       pplot <- NULL
     }
@@ -91,19 +82,13 @@ pmcalibration <- function(y, p,
 
   pw <- ci == "pw"
   if (is.null(pplot) & pw){
-    warning("ci = 'pw' but neval = 0 or is.null. Will not calculate pointwise standard errors")
+    warning("ci = 'pw' but eval = 0 or is.null. Will not calculate pointwise standard errors")
     pw <- F
   }
 
-  # if (logitp){
-  #   xp <- if (!is.null(pplot)) logit(pplot) else NULL
-  #   x <- logit(p)
-  # } else{
-  #   x <- p; xp <- pplot
-  # }
   if (is.null(transf)){
     if (surv){
-      transf <- "log-log"
+      transf <- "cloglog"
     } else{
       transf <- "logit"
     }
@@ -113,14 +98,14 @@ pmcalibration <- function(y, p,
     if (length(formals) > 1) stop("transf should just take one argument")
     tfun <- transf
   } else{
-    if (!transf %in% c("none", "logit", "log-log")) {
-      stop("invalid transf. Should be 'none', 'logit', 'log-log' or a function")
+    if (!transf %in% c("none", "logit", "cloglog")) {
+      stop("invalid transf. Should be 'none', 'logit', 'cloglog' or a function")
     }
     if (transf == "none"){
       tfun <- function(x) x
     } else if (transf == "logit"){
       tfun <- logit
-    } else if (transf == "log-log"){
+    } else if (transf == "cloglog"){
       tfun <- function(x) log(-log(1 - x))
     }
   }
@@ -137,17 +122,15 @@ pmcalibration <- function(y, p,
   } else if (smooth == "loess"){
     cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, pw = pw)
   } else if (smooth == "gam"){
-    cal <- gam_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, pw = pw, ...)
+    cal <- gam_cal(y = y, p = p, x = x, xp = xp, time=time,
+                   save_data = T, save_mod = T, pw = pw, ...)
   }
 
   if (ci == "boot"){
     b.cal <- run_boots(cal, R = n, cores = cores)
-    #conf.int <- get_ci(b.cal, conf_level = conf_level)
   } else if (ci == "sim"){
     b.cal <- simb(cal, R = n)
-    #conf.int <- get_ci(b.cal, conf_level = conf_level)
   } else{
-    #conf.int <- NULL
     b.cal <- NULL
   }
 
@@ -174,22 +157,20 @@ pmcalibration <- function(y, p,
   out <- list(
     call = call,
     metrics = cal$metrics,
-    #conf.int = conf.int$metrics,
     metrics.samples = metrics.samples,
     plot = list(
       p = pplot,
       p_c_plot = cal$p_c_plot,
       p_c_plot_se = cal$p_c_plot_se,
       plot.samples = plot.samples
-      #conf.int = conf.int$p_c_plot
     ),
     smooth = smooth,
-    ci = ci, #conf_level = conf_level,
+    ci = ci,
     n = n,
     smooth_args = cal$smooth_args,
     transf = transf,
     time = time,
-    outcome = cal$outcome
+    outcome = ifelse(surv, "tte", "binary")
   )
 
   class(out) <- "pmcalibration"

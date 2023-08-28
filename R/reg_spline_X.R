@@ -23,7 +23,7 @@ reg_spline_X <- function(x, xp, smooth, ...){
     if ("knots" %in% names(dots)) knots <- dots[['knots']] else knots <- NULL
 
     if (is.null(nk) & is.null(knots)){
-      warning("for smooth = 'rcs' either nk (number of knots) or knots must be provided. Defaulting to nk = 5. See ?Hmisc::rcspline.eval")
+      message("for smooth = 'rcs' either nk (number of knots) or knots must be provided. Defaulting to nk = 5. See ?Hmisc::rcspline.eval")
       nk <- 5
     }
 
@@ -68,8 +68,6 @@ reg_spline_X <- function(x, xp, smooth, ...){
       Xp <- NULL
     }
 
-    # kno <- c(attr(X, "knots"), attr(X, "Boundary.knots"))
-    # kno <- kno[order(kno)]
     smooth_args <- list(smooth = smooth,
                         df = df,
                         knots = knots, # knots specified by user

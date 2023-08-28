@@ -4,8 +4,8 @@ Title: Calibration Curves For Clinical Prediction Models
 Version: 0.1.0
 Authors@R: person(given = "Stephen", family = "Rhodes", email= "steverho89@gmail.com", role=c("aut", "cre"))
 Maintainer: Stephen Rhodes <steverho89@gmail.com>
-Description: Fit calibrations curves for clinical prediction models and calculate several associated metrics (Eavg, E50, E90, Emax). Ideally predicted probabilities from a prediction model should align with observed probabilities. Calibration curves relate predicted probabilities (or logit(probability)) to observed outcomes via a flexible non-linear smoothing function. `pmcalibration` allows users to choose between several smoothers (regression splines, GAMs, lowess, loess).
-    Currently only binary outcomes are supported but we aim to expand functionality (e.g., include time-to-event).
+Description: Fit calibrations curves for clinical prediction models and calculate several associated metrics (Eavg, E50, E90, Emax). Ideally predicted probabilities from a prediction model should align with observed probabilities. Calibration curves relate predicted probabilities (or a transformation thereof) to observed outcomes via a flexible non-linear smoothing function. `pmcalibration` allows users to choose between several smoothers (regression splines, GAMs, lowess, loess).
+    Both binary and time-to-event outcomes are supported.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -16,6 +16,7 @@ Imports:
     checkmate,
     chk,
     mgcv,
+    splines,
     graphics,
     stats,
     methods,
@@ -27,5 +28,6 @@ Suggests:
     rmarkdown,
     data.table,
     ggplot2,
-    rms
+    rms,
+    simsurv
 VignetteBuilder: knitr

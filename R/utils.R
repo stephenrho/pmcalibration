@@ -35,7 +35,7 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     p_ci <- x$plot$p_c_plot + t(outer(c(-1, 1)*zcrit, x$plot$p_c_plot_se))
     colnames(p_ci) <- c("lower", "upper")
     plot_tab <- cbind(plot_tab, p_ci)
-    if (x$outcome == "tte"){
+    if (x$outcome == "tte" & x$smooth != "gam"){
       plot_tab[, 2:4] <- 1 - exp(-plot_tab[, 2:4])
     }
   }
@@ -50,7 +50,9 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     conf_level = conf_level,
     n = x$n,
     smooth_args = x$smooth_args,
-    transf = x$transf
+    transf = x$transf,
+    time = x$time,
+    outcome=x$outcome
     )
 
   class(out) <- "pmcalibrationsummary"
@@ -87,13 +89,18 @@ print.pmcalibrationsummary <- function(x, digits = 2, ...){
       transp <- "untransformed"
     } else if (x$transf == "logit"){
       transp <- "logit transformed"
-    } else if (x$transf == "log-log"){
+    } else if (x$transf == "cloglog"){
       transp <- "complementary log-log transformed"
     }
   }
 
+  if (x$outcome == "binary"){
+    otext <- "binary outcome"
+  } else if (x$outcome == "tte"){
+    otext <- paste0("time-to-event outcome (time = ", x$time, ")")
+  }
 
-  cat("Calibration metrics based on a calibration curve estimated via",
+  cat("Calibration metrics based on a calibration curve estimated for a", otext,"via",
       smoothtext[[x$smooth]], "using", transp, "predicted probabilities.\n\n")
 
   print(x$metrics, digits = digits)

@@ -4,16 +4,18 @@
 \alias{gam_cal}
 \title{fits a calibration curve via gam}
 \usage{
-gam_cal(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...)
+gam_cal(y, p, x, xp, time = NULL, save_data = T, save_mod = T, pw = F, ...)
 }
 \arguments{
-\item{y}{binary outcome}
+\item{y}{binary or a time-to-event (\code{Surv}) outcome. For the former \code{family = binomial(link="logit")} and for the latter \code{family = mgcv::cox.ph()}.}
 
 \item{p}{predicted probabilities}
 
 \item{x}{predictor (could be transformation of \code{p})}
 
 \item{xp}{values for plotting (same scale as \code{x})}
+
+\item{time}{time to calculate survival probabilities at (only relevant if \code{y} is a \code{Surv} object)}
 
 \item{save_data}{whether to save the data elements in the returned object}
 

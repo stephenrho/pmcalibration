@@ -1,9 +1,10 @@
 #' fits a calibration curve via gam
 #'
-#' @param y binary outcome
+#' @param y binary or a time-to-event (\code{Surv}) outcome. For the former \code{family = binomial(link="logit")} and for the latter \code{family = mgcv::cox.ph()}.
 #' @param p predicted probabilities
 #' @param x predictor (could be transformation of \code{p})
 #' @param xp values for plotting (same scale as \code{x})
+#' @param time time to calculate survival probabilities at (only relevant if \code{y} is a \code{Surv} object)
 #' @param save_data whether to save the data elements in the returned object
 #' @param save_mod whether to save the model in the returned object
 #' @param pw save pointwise standard errors for plotting
@@ -12,7 +13,7 @@
 #' @returns list of class \code{gam_cal}
 #' @keywords internal
 #' @export
-gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...){
+gam_cal <- function(y, p, x, xp, time=NULL, save_data = T, save_mod = T, pw = F, ...){
 
   dots <- list(...)
   if ("bs" %in% names(dots)) bs <- dots[['bs']] else bs <- "tp"
@@ -20,22 +21,47 @@ gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...){
   if ("fx" %in% names(dots)) fx <- dots[['fx']] else fx <- FALSE
   if ("method" %in% names(dots)) method <- dots[['method']] else method <- "GCV.Cp"
 
+  surv <- is(y, "Surv")
+
   # fit the calibration curve model
-  d <- data.frame(y, x)
+  if (surv){
+    times <- y[, 1]
+    events <- y[, 2]
+    d <- data.frame(times, events, x)
 
-  mod <- mgcv::gam(y ~ s(x, k = k, fx = fx, bs = bs), data = d,
-                   family = binomial(link="logit"),
-                   method = method)
+    mod <- mgcv::gam(times ~ s(x, k = k, fx = fx, bs = bs), data = d,
+                     family = mgcv::cox.ph(),
+                     weights = events,
+                     method = method)
 
-  p_c <- as.vector(predict(mod, type = "response"))
+    p_c = 1 - as.vector(predict(mod, type = "response", newdata = data.frame(times = time, x=x)))
+  } else{
+    d <- data.frame(y, x)
+
+    mod <- mgcv::gam(y ~ s(x, k = k, fx = fx, bs = bs), data = d,
+                     family = binomial(link="logit"),
+                     method = method)
+
+    p_c <- as.vector(predict(mod, type = "response"))
+  }
 
   if (!is.null(xp)){
     if (pw){
-      p_c_p <- predict(mod, newdata = data.frame(x = xp), type = "response", se.fit = T)
-      p_c_plot <- as.vector(p_c_p$fit)
+      if (surv){
+        p_c_p <- predict(mod, type = "response", newdata = data.frame(times = time, x = xp), se.fit=T)
+      } else{
+        p_c_p <- predict(mod, newdata = data.frame(x = xp), type = "response", se.fit = T)
+      }
+      p_c_plot <- 1 - as.vector(p_c_p$fit)
       p_c_plot_se <- as.vector(p_c_p$se)
+
     } else{
-      p_c_plot <- as.vector(predict(mod, newdata = data.frame(x = xp), type = "response"))
+      if (surv){
+        p_c_plot <- 1 - as.vector(predict(mod, type = "response",
+                                       newdata = data.frame(times = time, x = xp)))
+      } else{
+        p_c_plot <- as.vector(predict(mod, newdata = data.frame(x = xp), type = "response"))
+      }
       p_c_plot_se <- NULL
     }
   } else{
@@ -59,7 +85,9 @@ gam_cal <- function(y, p, x, xp, save_data = T, save_mod = T, pw = F, ...){
       k = k,
       fx = fx,
       method = method
-    )
+    ),
+    time = time,
+    outcome = ifelse(surv, "tte", "binary")
   )
 
   class(out) <- "gam_cal"

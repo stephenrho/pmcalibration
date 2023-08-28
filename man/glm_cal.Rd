@@ -18,7 +18,7 @@ glm_cal(
 )
 }
 \arguments{
-\item{y}{binary outcome or a time-to-event \code{Surv} object. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.}
+\item{y}{binary or a time-to-event (\code{Surv}) outcome. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.}
 
 \item{p}{predicted probabilities}
 

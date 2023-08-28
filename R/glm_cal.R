@@ -1,6 +1,6 @@
 #' fits a calibration curve via glm or Cox proportional hazards model
 #'
-#' @param y binary outcome or a time-to-event \code{Surv} object. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.
+#' @param y binary or a time-to-event (\code{Surv}) outcome. Former is fit via \code{glm} and latter is fit via \code{survival::coxph}.
 #' @param p predicted probabilities
 #' @param x predictor (could be transformation of \code{p})
 #' @param xp values for plotting (same scale as \code{x})

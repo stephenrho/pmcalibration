@@ -14,6 +14,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Binary outcome
+
 ```{r setup}
 library(pmcalibration)
 
@@ -101,6 +103,66 @@ val.prob(p = p, y = y)
 ```
 
 Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calbration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`.
+
+\
+\
+
+# Time to event outcome
+
+The code below produces a calibration curve, and associated metrics, for a time-to-event outcome.
+
+```{r}
+library(simsurv)
+library(survival)
+
+# simulate some data
+n <- 2000
+X <- data.frame(id = seq(n), x1 = rnorm(n), x2 = rnorm(n))
+X$x3 <- X$x1*X$x2 # interaction
+
+b <- c("x1" = -.2, "x2" = -.2, "x3" = .1)
+
+d <- simsurv(dist = "weibull", lambdas = .01, gammas = 1.5, x = X, betas = b, seed = 246)
+
+mean(d$eventtime)
+median(d$eventtime)
+mean(d$status) # no censoring
+
+d <- cbind(d, X[,-1])
+
+head(d)
+
+# split into development and validation
+ddev <- d[1:1000, ]
+dval <- d[1001:2000, ]
+
+# fit a cox model
+cph <- coxph(Surv(eventtime, status) ~ x1 + x2, data = ddev)
+
+# predicted probability of event at time = 15
+p = 1 - exp(-predict(cph, type="expected", newdata = data.frame(eventtime=15, status=1, x1=dval$x1, x2=dval$x2)))
+
+y <- with(dval, Surv(eventtime, status))
+
+# calibration curve at time = 15
+(cc <- pmcalibration(y = y, p = p, smooth = "rcs", nk = 5, ci = "pw", time = 15))
+# pointwise standard errors for plot but no CI for metrics
+# 'boot' CIs are also available for time to event outcomes
+
+```
+
+```{r, fig.height=5, fig.width=6}
+plot(cc)
+mtext("time = 15")
+```
+
+Compare to `rms::val.surv`, which with the arguments specified below uses `polspline::hare` to fit a calibration curve. Note `val.surv` uses probability of surviving until time = u *not* probability of event occurring by time = u.
+
+```{r, fig.height=5, fig.width=6}
+plot(val.surv(S = y, est.surv = 1-p, u=15, fun = function(x) log(-log(x))))
+```
+
+
 
 \
 \
