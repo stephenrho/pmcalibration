@@ -2,7 +2,7 @@
 % Please edit documentation in R/boots.R
 \name{run_boots}
 \alias{run_boots}
-\title{Wrapper to run boostrap resamples using \code{parallel}}
+\title{Wrapper to run bootstrap resamples using \code{parallel}}
 \usage{
 run_boots(cal, R = 1000, cores = 1)
 }
@@ -17,6 +17,6 @@ run_boots(cal, R = 1000, cores = 1)
 a list created by one of the \code{boot.} functions
 }
 \description{
-Wrapper to run boostrap resamples using \code{parallel}
+Wrapper to run bootstrap resamples using \code{parallel}
 }
 \keyword{internal}

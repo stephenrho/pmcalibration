@@ -239,7 +239,7 @@ print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
 #' @return data frame for plotting with 4 columns
 #' \itemize{
 #' \item{\code{p} - values for the x-axis (predicted probabilities - note these are *not* from your data and are only used for plotting)}
-#' \item{\code{p_c} - probability impied by the calibration curve given \code{p}}
+#' \item{\code{p_c} - probability implied by the calibration curve given \code{p}}
 #' \item{\code{lower} and \code{upper} - bounds of the confidence interval}
 #' }
 #' @export
@@ -341,7 +341,7 @@ invlogit <- binomial()$linkinv
 #' @param N number of observations to simulate
 #' @param a1 value of the intercept term (in logits). This must be provided along with either \code{a2} or \code{a3}.
 #' @param a2 value of the quadratic coefficient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + a2*x1^2} where \code{x1} is sampled from a standard normal distribution.
-#' @param a3 value of the interaction coeffient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + x2 + x1*x2*a3} where \code{x1} and \code{x2} are sampled from independent standard normal distributions.
+#' @param a3 value of the interaction coefficient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + x2 + x1*x2*a3} where \code{x1} and \code{x2} are sampled from independent standard normal distributions.
 #'
 #' @references Austin, P. C., & Steyerberg, E. W. (2019). The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. Statistics in medicine, 38(21), 4051-4065.
 #' @references Rhodes, S. (2022, November 4). Using restricted cubic splines to assess the calibration of clinical prediction models: Logit transform predicted probabilities first. https://doi.org/10.31219/osf.io/4n86q

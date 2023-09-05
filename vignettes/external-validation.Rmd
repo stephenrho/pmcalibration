@@ -48,7 +48,7 @@ logistic_cal(y = y, p = p)
 
 The calibration-intercept suggests no particular bias with a point estimate not far off zero. The calibration slope suggests that predicted probabilities are too extreme. However, this logistic calibration enforces a linear relationship between logit transformed probabilities and the log odds of y = 1. 
 
-Below we use `pmcalibration` to fit a flexible calibration curve, allowing for a non-linear relationship between predicted and actual probabilities. This assesses 'moderate calibration' according to the heirarchy of [Van Calster et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26772608/).
+Below we use `pmcalibration` to fit a flexible calibration curve, allowing for a non-linear relationship between predicted and actual probabilities. This assesses 'moderate calibration' according to the hierarchy of [Van Calster et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26772608/).
 
 In the example below, we fit a calibration curve using `mgcv::gam` via a penalized thin plate regression spline (see `?mgcv::tprs`). `pmcalibration` calculates various metrics from the absolute difference between the predicted probability and the actual probability (as estimated by the calibration curve). In this case 95% confidence intervals for these metrics are calculated via simulation based inference. 
 
@@ -102,7 +102,7 @@ library(rms)
 val.prob(p = p, y = y)
 ```
 
-Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calbration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`.
+Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calibration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`.
 
 \
 \

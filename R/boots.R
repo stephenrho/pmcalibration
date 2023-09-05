@@ -76,7 +76,7 @@ boot.loess_cal <- function(cal){
 }
 
 
-#' Wrapper to run boostrap resamples using \code{parallel}
+#' Wrapper to run bootstrap resamples using \code{parallel}
 #'
 #' @param cal an object created with one of the \code{_cal} functions
 #' @param R number of resamples (default = 1000)

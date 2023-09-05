@@ -54,10 +54,10 @@ Internal validation can provide an unbiased assessment of the performance of a m
 The bootstrap optimism approach to internal validation of some performance metric ($M$) proceeds as follows:
 
 1. Estimate *apparent* performance ($M_{appar}$) of the model building strategy in the full development sample. In the case of calibration this could be $Eavg_{appar}$.
-2. Resample with replacement from the development data to create a boostrap sample with same number of observations. 
+2. Resample with replacement from the development data to create a bootstrap sample with same number of observations. 
 3. Run the *entire model development process* on the bootstrap sample.
 4. Using the model developed in Step 3, calculate the metrics of interest on the bootstrap sample ($M_{boot}$) and on the original sample ($M_{orig}$).
-5. Optimism is the difference in performance between the model as evaluated on the bootsrap sample and the original sample: $M_{opt} = M_{boot} - M_{orig}$
+5. Optimism is the difference in performance between the model as evaluated on the bootstrap sample and the original sample: $M_{opt} = M_{boot} - M_{orig}$
 6. Run steps 2 to 5 $B$ times (where $B \geq 100$) and average $M_{opt}$ across resamples. 
 7. Optimism corrected (or bias corrected) performance is $M_{appar} - \mbox{mean}({M}_{opt})$.
 
@@ -86,7 +86,7 @@ internal_cal <- function(model_fun, data, pred_fun, y="y", B=100){
   pp <- seq(min(p), max(p), length.out=100) # for plotting
   apparent <- pmcalibration(y = data[[y]], p = p, smooth = "gam", ci = "none", neval = pp)
   
-  # one boostrap resample
+  # one bootstrap resample
   one_boot <- function(model, data, pred_fun){
     d <- data[sample(nrow(data), replace = T), ]
     #modelcall[["data"]] <- d
@@ -94,7 +94,7 @@ internal_cal <- function(model_fun, data, pred_fun, y="y", B=100){
     # bootmodel <- eval(modelcall) # fit model on resampled data
     bootmodel <- model_fun(d)
     
-    p_boot <- pred_fun(bootmodel, d) # evaluate on 'training' data (boostrap resample)
+    p_boot <- pred_fun(bootmodel, d) # evaluate on 'training' data (bootstrap resample)
     p_orig <- pred_fun(bootmodel, data) # evaluate on 'test' (original data)
     
     cc_boot <- pmcalibration(y = d[[y]], p = p_boot, smooth = "gam", ci = "none", neval = pp)

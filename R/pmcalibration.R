@@ -96,6 +96,12 @@ pmcalibration <- function(y, p,
 
   chk::vld_compatible_lengths(y, p)
 
+  if (any(is.na(p)) | any(is.na(y))){
+    i <- which(is.na(p) | is.na(y))
+    y <- y[-i]; p <- p[-i]
+    message(sprintf("%i records with missing values were removed", length(i)))
+  }
+
   smooth <- match.arg(smooth)
   ci <- match.arg(ci)
 

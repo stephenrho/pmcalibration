@@ -15,7 +15,7 @@ get_cc(x, conf_level = 0.95)
 data frame for plotting with 4 columns
 \itemize{
 \item{\code{p} - values for the x-axis (predicted probabilities - note these are *not* from your data and are only used for plotting)}
-\item{\code{p_c} - probability impied by the calibration curve given \code{p}}
+\item{\code{p_c} - probability implied by the calibration curve given \code{p}}
 \item{\code{lower} and \code{upper} - bounds of the confidence interval}
 }
 }

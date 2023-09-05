@@ -13,7 +13,7 @@ sim_dat(N, a1, a2 = NULL, a3 = NULL)
 
 \item{a2}{value of the quadratic coefficient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + a2*x1^2} where \code{x1} is sampled from a standard normal distribution.}
 
-\item{a3}{value of the interaction coeffient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + x2 + x1*x2*a3} where \code{x1} and \code{x2} are sampled from independent standard normal distributions.}
+\item{a3}{value of the interaction coefficient. If specified the linear predictor is simulated as follows: \code{LP <- a1 + x1 + x2 + x1*x2*a3} where \code{x1} and \code{x2} are sampled from independent standard normal distributions.}
 }
 \value{
 a simulated data set with \code{N} rows. Can be split into 'development' and 'validation' sets.
