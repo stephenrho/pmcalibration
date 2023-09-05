@@ -6,12 +6,6 @@ A goal of `pmcalibration` is to implement a range of methods for estimating a sm
 
 To install:
 
-```
-install.packages("pmcalibration")
-```
-
-To install development version:
-
 ```         
 devtools::install_github("https://github.com/stephenrho/pmcalibration")
 ```
