@@ -22,6 +22,15 @@ a simulated data set with \code{N} rows. Can be split into 'development' and 'va
 Function for simulating data either with a single 'predictor' variable with a quadratic relationship with logit(p)
 or two predictors that interact (see references for examples).
 }
+\examples{
+library(pmcalibration)
+# simulate some data with a binary outcome
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+
+head(dat) # LP = linear predictor
+
+}
 \references{
 Austin, P. C., & Steyerberg, E. W. (2019). The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. Statistics in medicine, 38(21), 4051-4065.
 

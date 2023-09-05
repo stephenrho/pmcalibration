@@ -1,7 +1,7 @@
 #' Simulation based inference with a calibration curve object
 #'
 #' @param cal an object created using one of the \code{cal} functions
-#' @param ... other object specific arguments
+#' @param R number of simulated replicates
 #'
 #' @return simulated calibration metrics and values for plotting
 #' @keywords internal

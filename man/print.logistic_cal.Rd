@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{print.logistic_cal}
 \alias{print.logistic_cal}
-\title{Print a logistic_cal}
+\title{Print a \code{logistic_cal} object}
 \usage{
 \method{print}{logistic_cal}(x, digits = 2, conf_level = 0.95, ...)
 }
@@ -19,5 +19,5 @@
 prints a summary
 }
 \description{
-Print a logistic_cal
+Print a \code{logistic_cal} object
 }

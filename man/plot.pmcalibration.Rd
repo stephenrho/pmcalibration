@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{plot.pmcalibration}
 \alias{plot.pmcalibration}
-\title{Plot a calibration curve}
+\title{Plot a calibration curve (\code{pmcalibration} object)}
 \usage{
 \method{plot}{pmcalibration}(x, conf_level = 0.95, ...)
 }
@@ -16,4 +16,18 @@
 \description{
 This is for a quick and dirty calibration curve plot.
 Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
+}
+\examples{
+library(pmcalibration)
+# simulate some data with a binary outcome
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+head(dat)
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+# fit calibration curve
+cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+
+plot(cal)
 }

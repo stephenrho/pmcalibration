@@ -12,6 +12,10 @@
 #' }
 #' @keywords internal
 #' @export
+#' @examples
+#' x <- rnorm(100)
+#' xp <- seq(min(x), max(x), length.out=50)
+#' reg_spline_X(x = x, xp = xp, smooth="rcs", nk=6)
 reg_spline_X <- function(x, xp, smooth, ...){
   dots <- list(...)
 

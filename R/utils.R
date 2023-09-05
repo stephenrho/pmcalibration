@@ -6,6 +6,20 @@
 #'
 #' @return prints a summary of calibration metrics. Returns a list of two tables: \code{metrics} and \code{plot}
 #' @export
+#'
+#' @examples
+#' library(pmcalibration)
+#' # simulate some data with a binary outcome
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#' head(dat)
+#' # predictions
+#' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+#'
+#' # fit calibration curve
+#' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+#'
+#' summary(cal)
 summary.pmcalibration <- function(object, conf_level = .95, ...){
 
   x <- object
@@ -40,8 +54,6 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     }
   }
 
-  #print(m_tab, digits = 3)
-
   out <- list(
     metrics = m_tab,
     plot = plot_tab,
@@ -53,7 +65,7 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
     transf = x$transf,
     time = x$time,
     outcome=x$outcome
-    )
+  )
 
   class(out) <- "pmcalibrationsummary"
 
@@ -75,11 +87,11 @@ print.pmcalibrationsummary <- function(x, digits = 2, ...){
                     "ns" = "a natural cubic spline (see ?splines::ns)",
                     "bs" = "a B-spline (see ?splines::bs)",
                     "gam" = "a generalized additive model (see ?mgcv::s)"
-                    )
+  )
 
   citext <- list("boot" = "bootstrap resampling",
                  "sim" = "simulation based inference"
-                 )
+  )
 
   transp <- if (is.function(x$transf)) "logit transformed" else "untransformed"
   if (is.function(x$transf)){
@@ -204,7 +216,7 @@ print.logistic_calsummary <- function(x, digits=2, ...){
   invisible(x)
 }
 
-#' Print a logistic_cal
+#' Print a \code{logistic_cal} object
 #'
 #' @param x a \code{logistic_cal} object
 #' @param digits number of digits to print
@@ -228,32 +240,39 @@ print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
 #' \itemize{
 #' \item{\code{p} - values for the x-axis (predicted probabilities - note these are *not* from your data and are only used for plotting)}
 #' \item{\code{p_c} - probability impied by the calibration curve given \code{p}}
-#' \item{\code{lower} and \code{upper} - bounds of the confidence interval
-#' (type of CI and width determined by original call to \code{pmcalibration})}
+#' \item{\code{lower} and \code{upper} - bounds of the confidence interval}
 #' }
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' get_cc(cal) |>
-#'  ggplot(aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
-#'  geom_abline(intercept = 0, slope = 1, lty=2) +
-#'  geom_line() +
-#'  geom_ribbon(alpha = 1/4)
-#'  }
+#' library(pmcalibration)
+#' # simulate some data with a binary outcome
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#' head(dat)
+#' # predictions
+#' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+#'
+#' # fit calibration curve
+#' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+#'
+#' cplot <- get_cc(cal, conf_level = .95)
+#' head(cplot)
+#'
+#' if (requireNamespace("ggplot2", quietly = TRUE)){
+#' library(ggplot2)
+#' ggplot(cplot, aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
+#'   geom_abline(intercept = 0, slope = 1, lty=2) +
+#'   geom_line() +
+#'   geom_ribbon(alpha = 1/4) +
+#'   lims(x=c(0,1), y=c(0,1))
+#' }
 get_cc <- function(x, conf_level = .95){
-  # cc <- data.frame(
-  #   p = x$plot$p,
-  #   p_c = x$plot$p_c_plot,
-  #   lower = x$plot$conf.int[, 1],
-  #   upper = x$plot$conf.int[, 2]
-  #   )
-
   cc <- summary(x, conf_level = conf_level)$plot
   return(cc)
 }
 
-#' Plot a calibration curve
+#' Plot a calibration curve (\code{pmcalibration} object)
 #'
 #' @description
 #' This is for a quick and dirty calibration curve plot.
@@ -264,6 +283,20 @@ get_cc <- function(x, conf_level = .95){
 #' @param ... other args for \code{plot()} (\code{lim} and \code{lab} can be specified)
 #'
 #' @export
+#'
+#' @examples
+#' library(pmcalibration)
+#' # simulate some data with a binary outcome
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#' head(dat)
+#' # predictions
+#' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+#'
+#' # fit calibration curve
+#' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+#'
+#' plot(cal)
 plot.pmcalibration <- function(x, conf_level = .95, ...){
 
   dots <- list(...)
@@ -299,7 +332,6 @@ logit <- binomial()$linkfun
 #' @export
 invlogit <- binomial()$linkinv
 
-
 #' Simulate a binary outcome with either a quadratic relationship or interaction
 #'
 #' @description
@@ -316,6 +348,15 @@ invlogit <- binomial()$linkinv
 #'
 #' @return a simulated data set with \code{N} rows. Can be split into 'development' and 'validation' sets.
 #' @export
+#'
+#' @examples
+#' library(pmcalibration)
+#' # simulate some data with a binary outcome
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#'
+#' head(dat) # LP = linear predictor
+#'
 sim_dat = function(N, a1, a2=NULL, a3=NULL){
 
   x1 <- rnorm(N)

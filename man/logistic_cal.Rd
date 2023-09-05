@@ -18,6 +18,17 @@ an object of class \code{logistic_cal} containing \code{glm} results for calcula
 Assess 'weak' calibration (see, e.g., Van Calster et al. 2019) via calibration intercept
 and calibration slope.
 }
+\examples{
+library(pmcalibration)
+# simulate some data
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+logistic_cal(y = dat$y, p = p)
+}
 \references{
 Van Calster, B., McLernon, D. J., Van Smeden, M., Wynants, L., & Steyerberg, E. W. (2019). Calibration: the Achilles heel of predictive analytics. BMC medicine, 17(1), 1-7.
 }

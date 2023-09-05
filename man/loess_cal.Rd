@@ -27,4 +27,15 @@ list of class \code{loess_cal}
 \description{
 calibration curve via \code{loess}
 }
+\examples{
+library(pmcalibration)
+# simulate some data
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+loess_cal(y = dat$y, p = p, x = p, xp = NULL)
+}
 \keyword{internal}

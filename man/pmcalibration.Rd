@@ -17,7 +17,7 @@ pmcalibration(
 )
 }
 \arguments{
-\item{y}{a binary or time-to-event outcome. Latter must be an object created via \code{survival::Surv}. Only right censored outcomes.}
+\item{y}{a binary or a right-censored time-to-event outcome. Latter must be an object created via \code{survival::Surv}.}
 
 \item{p}{predicted probabilities from a clinical prediction model. For a time-to-event object \code{time} must be specified and \code{p} are predicted probabilities of the outcome happening by \code{time} units of time follow-up.}
 
@@ -29,7 +29,7 @@ pmcalibration(
 \item{'gam' = generalized additive model via \code{mgcv::gam} and \code{mgcv::s}. Optional arguments are \code{bs}, \code{k}, \code{fx}, \code{method} (see \code{?mgcv::gam} and  \code{?mgcv::s}) }
 \item{'lowess' = uses \code{lowess(x, y, iter = 0)} based on \code{rms::calibrate}. Only for binary outcomes.}
 \item{'loess' = uses \code{loess} with all defaults. Only for binary outcomes. }
-\item{'none' = logistic regression with single predictor variable (for binary outcome performs logistic calibration when \code{transf = "logit"}). See \code{\link{logistic_cal}} }
+\item{'none' = logistic or Cox regression with single predictor variable (for binary outcome performs logistic calibration when \code{transf = "logit"}). See \code{\link{logistic_cal}} }
 }
 'rcs', 'ns', 'bs', and 'none' are fit via \code{glm} or \code{survival::coxph} and 'gam' is fit via \code{mgcv::gam} with \code{family = Binomial(link="logit")} for a binary outcome or \code{mgcv::cox.ph} when \code{y} is time-to-event.}
 
@@ -37,9 +37,9 @@ pmcalibration(
 
 \item{ci}{what kind of confidence intervals to compute?
 \itemize{
-\item{'sim' = simulation based inference; \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
-\item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled x)}
-\item{'pw' = pointwise confidence intervals calculated via the standard errors produced by relevant \code{predict} methods. Only for plotting curves - CIs are not produced for metrics (not available for smooth = 'lowess')}
+\item{'sim' = simulation based inference. Note this is currently only available for binary outcomes. \code{n} samples are taken from a multivariate normal distribution with mean vector = coef(mod) and variance covariance = vcov(model).}
+\item{'boot' = bootstrap resampling with \code{n} replicates. \code{y} and \code{p} are sampled with replacement and the calibration curve is reestimated. If \code{knots} are specified the same knots are used for each resample (otherwise they are calculated using resampled \code{p} or transformation thereof)}
+\item{'pw' = pointwise confidence intervals calculated via the standard errors produced by relevant \code{predict} methods. Only for plotting curves; if selected, CIs are not produced for metrics (not available for smooth = 'lowess')}
 }
 Calibration metrics are calculated using each simulation or boot sample. For both options percentile confidence intervals are returned.}
 
@@ -55,7 +55,52 @@ Calibration metrics are calculated using each simulation or boot sample. For bot
 a \code{pmcalibration} object containing calibration metrics and values for plotting
 }
 \description{
-Assess calibration of clinical prediction models (agreement between predicted and observed probabilities) via different smooths.
+Assess calibration of clinical prediction models (agreement between predicted and observed probabilities) via different smooths. Binary and time-to-event outcomes are supported.
+}
+\examples{
+# binary outcome -------------------------------------
+library(pmcalibration)
+# simulate some data
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+head(dat)
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+# fit calibration curve
+cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+
+summary(cal)
+
+plot(cal)
+
+# time to event outcome -------------------------------------
+library(pmcalibration)
+if (requireNamespace("survival", quietly = TRUE)){
+library(survival)
+
+data('transplant', package="survival")
+transplant <- na.omit(transplant)
+transplant = subset(transplant, futime > 0)
+transplant$ltx <- as.numeric(transplant$event == "ltx")
+
+# get predictions from coxph model at time = 100
+# note that as we are fitting and evaluating the model on the same data
+# this is internal calibration (see vignette("internal-validation", package = "pmcalibration"))
+cph <- coxph(Surv(futime, ltx) ~ age + sex + abo + year, data = transplant)
+
+time <- 100
+newd <- transplant; newd$futime <- time; newd$ltx <- 1
+p <- 1 - exp(-predict(cph, type = "expected", newdata=newd))
+y <- with(transplant, Surv(futime, ltx))
+
+cal <- pmcalibration(y = y, p = p, smooth = "rcs", nk=5, ci = "pw", time = time)
+
+summary(cal)
+
+plot(cal)
+
+}
 }
 \references{
 Austin P. C., Steyerberg E. W. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281

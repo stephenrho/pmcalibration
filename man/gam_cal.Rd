@@ -31,4 +31,15 @@ list of class \code{gam_cal}
 \description{
 fits a calibration curve via gam
 }
+\examples{
+library(pmcalibration)
+# simulate some data
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+head(dat)
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+gam_cal(y = dat$y, p = p, x = p, xp = NULL, k = 20, method="REML")
+}
 \keyword{internal}

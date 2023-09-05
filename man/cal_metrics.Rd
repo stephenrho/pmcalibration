@@ -24,6 +24,15 @@ a named vector of metrics based on absolute difference between predicted and cal
 \description{
 Calculates metrics used for summarizing calibration curves. See Austin and Steyerberg (2019)
 }
+\examples{
+library(pmcalibration)
+
+LP <- rnorm(100) # linear predictor
+p_c <- invlogit(LP) # actual probabilities
+p <- invlogit(LP*1.3) # predicted probabilities that are miscalibrated
+
+cal_metrics(p = p, p_c = p_c)
+}
 \references{
 Austin PC, Steyerberg EW. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
 

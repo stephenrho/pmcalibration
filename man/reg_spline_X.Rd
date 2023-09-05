@@ -25,4 +25,9 @@ a list containing
 \description{
 Make a design matrix for regression spline
 }
+\examples{
+x <- rnorm(100)
+xp <- seq(min(x), max(x), length.out=50)
+reg_spline_X(x = x, xp = xp, smooth="rcs", nk=6)
+}
 \keyword{internal}

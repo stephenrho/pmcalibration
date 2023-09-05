@@ -19,6 +19,14 @@
 #' @references Van Hoorde, K., Van Huffel, S., Timmerman, D., Bourne, T., Van Calster, B. (2015). A spline-based tool to assess and visualize the calibration of multiclass risk predictions. \emph{Journal of Biomedical Informatics}, 54, pp. 283-93
 #' @references Van Calster, B., Nieboer, D., Vergouwe, Y., De Cock, B., Pencina M., Steyerberg E.W. (2016). A calibration hierarchy for risk models was defined: from utopia to empirical data. \emph{Journal of Clinical Epidemiology}, 74, pp. 167-176
 #' @export
+#' @examples
+#' library(pmcalibration)
+#'
+#' LP <- rnorm(100) # linear predictor
+#' p_c <- invlogit(LP) # actual probabilities
+#' p <- invlogit(LP*1.3) # predicted probabilities that are miscalibrated
+#'
+#' cal_metrics(p = p, p_c = p_c)
 cal_metrics <- function(p, p_c){
   # code modified from the Austin and Steyerberg (2019, SiM) paper
   stopifnot(length(p) == length(p_c))

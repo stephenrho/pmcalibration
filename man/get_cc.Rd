@@ -16,19 +16,33 @@ data frame for plotting with 4 columns
 \itemize{
 \item{\code{p} - values for the x-axis (predicted probabilities - note these are *not* from your data and are only used for plotting)}
 \item{\code{p_c} - probability impied by the calibration curve given \code{p}}
-\item{\code{lower} and \code{upper} - bounds of the confidence interval
-(type of CI and width determined by original call to \code{pmcalibration})}
+\item{\code{lower} and \code{upper} - bounds of the confidence interval}
 }
 }
 \description{
 Extract plot data from \code{pmcalibration} object
 }
 \examples{
-\dontrun{
-get_cc(cal) |>
- ggplot(aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
- geom_abline(intercept = 0, slope = 1, lty=2) +
- geom_line() +
- geom_ribbon(alpha = 1/4)
- }
+library(pmcalibration)
+# simulate some data with a binary outcome
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+head(dat)
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+# fit calibration curve
+cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+
+cplot <- get_cc(cal, conf_level = .95)
+head(cplot)
+
+if (requireNamespace("ggplot2", quietly = TRUE)){
+library(ggplot2)
+ggplot(cplot, aes(x = p, y = p_c, ymin=lower, ymax=upper)) +
+  geom_abline(intercept = 0, slope = 1, lty=2) +
+  geom_line() +
+  geom_ribbon(alpha = 1/4) +
+  lims(x=c(0,1), y=c(0,1))
+}
 }

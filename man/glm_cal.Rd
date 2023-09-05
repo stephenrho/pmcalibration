@@ -42,4 +42,15 @@ list of class \code{glm_cal}
 \description{
 fits a calibration curve via glm or Cox proportional hazards model
 }
+\examples{
+library(pmcalibration)
+# simulate some data
+n <- 500
+dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+
+# predictions
+p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+
+glm_cal(y = dat$y, p = p, x = p, xp = NULL, smooth="ns", df=5)
+}
 \keyword{internal}

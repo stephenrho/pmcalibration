@@ -21,7 +21,7 @@ simb(cal, R)
 \arguments{
 \item{cal}{an object created using one of the \code{cal} functions}
 
-\item{...}{other object specific arguments}
+\item{R}{number of simulated replicates}
 }
 \value{
 simulated calibration metrics and values for plotting

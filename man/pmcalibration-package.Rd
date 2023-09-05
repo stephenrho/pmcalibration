@@ -4,12 +4,20 @@
 \name{pmcalibration-package}
 \alias{pmcalibration-package}
 \alias{_PACKAGE}
-\title{pmcalibration: Calibration Curves For Clinical Prediction Models}
+\title{pmcalibration: Calibration Curves for Clinical Prediction Models}
 \description{
 Fit calibrations curves for clinical prediction models and calculate several associated metrics (Eavg, E50, E90, Emax). Ideally predicted probabilities from a prediction model should align with observed probabilities. Calibration curves relate predicted probabilities (or a transformation thereof) to observed outcomes via a flexible non-linear smoothing function. `pmcalibration` allows users to choose between several smoothers (regression splines, GAMs, lowess, loess). Both binary and time-to-event outcomes are supported.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/stephenrho/pmcalibration}
+  \item Report bugs at \url{https://github.com/stephenrho/pmcalibration/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Stephen Rhodes \email{steverho89@gmail.com}
+\strong{Maintainer}: Stephen Rhodes \email{steverho89@gmail.com} [copyright holder]
 
 }
 \keyword{internal}

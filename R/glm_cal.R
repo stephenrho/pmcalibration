@@ -13,6 +13,16 @@
 #' @returns list of class \code{glm_cal}
 #' @keywords internal
 #' @export
+#' @examples
+#' library(pmcalibration)
+#' # simulate some data
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#'
+#' # predictions
+#' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+#'
+#' glm_cal(y = dat$y, p = p, x = p, xp = NULL, smooth="ns", df=5)
 glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T, pw = F, ...){
 
   surv <- is(y, "Surv")
@@ -85,8 +95,6 @@ glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T,
   return(out)
 }
 
-
-
 #' Run logistic calibration
 #'
 #' @description
@@ -101,6 +109,16 @@ glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T,
 #' @return an object of class \code{logistic_cal} containing \code{glm} results for calculating calibration intercept and calibration slope
 #'
 #' @export
+#' @examples
+#' library(pmcalibration)
+#' # simulate some data
+#' n <- 500
+#' dat <- sim_dat(N = n, a1 = .5, a3 = .2)
+#'
+#' # predictions
+#' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
+#'
+#' logistic_cal(y = dat$y, p = p)
 logistic_cal <- function(y, p){
   LP <- logit(p)
 
