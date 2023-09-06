@@ -11,9 +11,9 @@ glm_cal(
   xp,
   smooth,
   time = NULL,
-  save_data = T,
-  save_mod = T,
-  pw = F,
+  save_data = TRUE,
+  save_mod = TRUE,
+  pw = FALSE,
   ...
 )
 }

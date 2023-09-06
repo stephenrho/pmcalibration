@@ -4,7 +4,7 @@
 \alias{loess_cal}
 \title{calibration curve via \code{loess}}
 \usage{
-loess_cal(p, y, x, xp, save_data = T, save_mod = T, pw = F)
+loess_cal(p, y, x, xp, save_data = TRUE, save_mod = TRUE, pw = FALSE)
 }
 \arguments{
 \item{p}{predicted probabilities}

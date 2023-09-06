@@ -14,16 +14,16 @@ boot <- function(cal){
 boot.glm_cal <- function(cal){
   # y <- cal$y; p <- cal$p; X <- cal$X; Xp <- cal$Xp
   #
-  # i <- sample(1:length(y), replace = T)
+  # i <- sample(1:length(y), replace = TRUE)
   #
-  # b <- glm_cal(y = y[i], p = p[i], X = X[i, ], Xp = Xp, save_data=F, save_mod = F)
+  # b <- glm_cal(y = y[i], p = p[i], X = X[i, ], Xp = Xp, save_data=FALSE, save_mod = FALSE)
 
   y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp; time <- cal$time
 
-  i <- sample(1:length(y), replace = T)
+  i <- sample(1:length(y), replace = TRUE)
 
   args <- list(
-    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=F, save_mod=F
+    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=FALSE, save_mod=FALSE
   )
 
   args <- c(args, cal$smooth_args)
@@ -38,10 +38,10 @@ boot.glm_cal <- function(cal){
 boot.gam_cal <- function(cal){
   y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp; time <- cal$time
 
-  i <- sample(1:length(y), replace = T)
+  i <- sample(1:length(y), replace = TRUE)
 
   args <- list(
-    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=F, save_mod=F
+    y = y[i], p = p[i], x = x[i], xp = xp, time=time, save_data=FALSE, save_mod=FALSE
   )
 
   args <- c(args, cal$smooth_args)
@@ -56,9 +56,9 @@ boot.gam_cal <- function(cal){
 boot.lowess_cal <- function(cal){
   y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
 
-  i <- sample(1:length(y), replace = T)
+  i <- sample(1:length(y), replace = TRUE)
 
-  b <- lowess_cal(y = y[i], p = p[i], x = x[i], xp = xp, save_data=F)
+  b <- lowess_cal(y = y[i], p = p[i], x = x[i], xp = xp, save_data=FALSE)
 
   return(b)
 }
@@ -68,9 +68,9 @@ boot.lowess_cal <- function(cal){
 boot.loess_cal <- function(cal){
   y <- cal$y; p <- cal$p; x <- cal$x; xp <- cal$xp
 
-  i <- sample(1:length(y), replace = T)
+  i <- sample(1:length(y), replace = TRUE)
 
-  b <- loess_cal(y = y[i], p = p[i], x = x[i], xp = xp, save_data = F, save_mod = F)
+  b <- loess_cal(y = y[i], p = p[i], x = x[i], xp = xp, save_data = FALSE, save_mod = FALSE)
 
   return(b)
 }

@@ -31,7 +31,7 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
   m_tab <- data.frame(Estimate = x$metrics)
 
   if (!is.null(x$metrics.samples)){
-    m_ci <- t(apply(x$metrics.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
+    m_ci <- t(apply(x$metrics.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = TRUE))
     colnames(m_ci) <- c("lower", "upper")
     m_tab <- cbind(m_tab, m_ci)
   }
@@ -39,13 +39,13 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
   plot_tab <- data.frame(p = x$plot$p, p_c = x$plot$p_c_plot)
 
   if (!is.null(x$plot$plot.samples)){
-    p_ci <- t(apply(x$plot$plot.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = T))
+    p_ci <- t(apply(x$plot$plot.samples, MARGIN = 2, FUN = quantile, probs = probs, na.rm = TRUE))
     colnames(p_ci) <- c("lower", "upper")
     plot_tab <- cbind(plot_tab, p_ci)
   }
 
   if (x$ci == "pw" & !is.null(x$plot$p_c_plot_se)){
-    zcrit <- qnorm((1-conf_level)/2, lower.tail = F)
+    zcrit <- qnorm((1-conf_level)/2, lower.tail = FALSE)
     p_ci <- x$plot$p_c_plot + t(outer(c(-1, 1)*zcrit, x$plot$p_c_plot_se))
     colnames(p_ci) <- c("lower", "upper")
     plot_tab <- cbind(plot_tab, p_ci)
@@ -173,7 +173,7 @@ summary.logistic_cal <- function(object, conf_level = .95, ...){
 
   cs_s[[3]] <- (cs_s[[1]] - 1)/cs_s[[2]]
 
-  cs_s[[4]] <- 2*pnorm(q = abs(cs_s[[3]]), lower.tail = F)
+  cs_s[[4]] <- 2*pnorm(q = abs(cs_s[[3]]), lower.tail = FALSE)
 
   c_tab <- rbind(
     cbind(ci_s, t(ci_ci)),
@@ -282,6 +282,7 @@ get_cc <- function(x, conf_level = .95){
 #' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
 #' @param ... other args for \code{plot()} (\code{lim} and \code{lab} can be specified)
 #'
+#' @return No return value, called for side effects
 #' @export
 #'
 #' @examples
@@ -320,14 +321,16 @@ plot.pmcalibration <- function(x, conf_level = .95, ...){
   }
 }
 
-#' Logit
-#'
+#' Logit transformation
+#' @param mu vector of numeric values between 0 and 1
+#' @return logit transformed mu (log(mu/(1-mu)))
 #' @keywords internal
 #' @export
 logit <- binomial()$linkfun
 
-#' Inverse logit
-#'
+#' Inverse logit transformation
+#' @param eta vector of numeric values
+#' @return inverse logit transformed eta (exp(eta)/(1 + exp(eta)))
 #' @keywords internal
 #' @export
 invlogit <- binomial()$linkinv

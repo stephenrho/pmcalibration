@@ -22,7 +22,7 @@
 #' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
 #'
 #' lowess_cal(y = dat$y, p = p, x = p, xp = NULL)
-lowess_cal <- function(p, y, x, xp, save_data = T){
+lowess_cal <- function(p, y, x, xp, save_data = TRUE){
 
   fit <- lowess(x = x, y = y, iter = 0)
 

@@ -23,7 +23,7 @@
 #' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
 #'
 #' gam_cal(y = dat$y, p = p, x = p, xp = NULL, k = 20, method="REML")
-gam_cal <- function(y, p, x, xp, time=NULL, save_data = T, save_mod = T, pw = F, ...){
+gam_cal <- function(y, p, x, xp, time=NULL, save_data = TRUE, save_mod = TRUE, pw = FALSE, ...){
 
   dots <- list(...)
   if ("bs" %in% names(dots)) bs <- dots[['bs']] else bs <- "tp"
@@ -58,10 +58,10 @@ gam_cal <- function(y, p, x, xp, time=NULL, save_data = T, save_mod = T, pw = F,
   if (!is.null(xp)){
     if (pw){
       if (surv){
-        p_c_p <- predict(mod, type = "response", newdata = data.frame(times = time, x = xp), se.fit=T)
+        p_c_p <- predict(mod, type = "response", newdata = data.frame(times = time, x = xp), se.fit=TRUE)
         p_c_plot <- 1 - as.vector(p_c_p$fit)
       } else{
-        p_c_p <- predict(mod, newdata = data.frame(x = xp), type = "response", se.fit = T)
+        p_c_p <- predict(mod, newdata = data.frame(x = xp), type = "response", se.fit = TRUE)
         p_c_plot <- as.vector(p_c_p$fit)
       }
       p_c_plot_se <- as.vector(p_c_p$se)

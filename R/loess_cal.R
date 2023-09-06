@@ -21,7 +21,7 @@
 #' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
 #'
 #' loess_cal(y = dat$y, p = p, x = p, xp = NULL)
-loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T, pw = F){
+loess_cal <- function(p, y, x, xp, save_data = TRUE, save_mod = TRUE, pw = FALSE){
 
   mod <- loess(y ~ x)
   # TODO
@@ -33,7 +33,7 @@ loess_cal <- function(p, y, x, xp, save_data = T, save_mod = T, pw = F){
 
   if (!is.null(xp)){
     if (pw){
-      p_c_p <- predict(mod, newdata = data.frame(x = xp), se = T)
+      p_c_p <- predict(mod, newdata = data.frame(x = xp), se = TRUE)
       p_c_plot <- as.vector(p_c_p$fit)
       p_c_plot_se <- as.vector(p_c_p$se)
     } else{

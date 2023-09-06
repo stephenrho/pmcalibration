@@ -30,8 +30,8 @@
 #' @param ... additional arguments for particular smooths. For ci = 'boot' the user is able to run samples in parallel (using the \code{parallel} package) by specifying a \code{cores} argument
 #'
 #' @references Austin P. C., Steyerberg E. W. (2019) The Integrated Calibration Index (ICI) and related metrics for quantifying the calibration of logistic regression models. \emph{Statistics in Medicine}. 38, pp. 1–15. https://doi.org/10.1002/sim.8281
-#' @references Van Calster, B., Nieboer, D., Vergouwe, Y., De Cock, B., Pencina M., Steyerberg E.W. (2016). A calibration hierarchy for risk models was defined: from utopia to empirical data. \emph{Journal of Clinical Epidemiology}, 74, pp. 167-176
-#' @references Austin, P. C., Harrell Jr, F. E., & van Klaveren, D. (2020). Graphical calibration curves and the integrated calibration index (ICI) for survival models. \emph{Statistics in Medicine}, 39(21), 2714-2742.
+#' @references Van Calster, B., Nieboer, D., Vergouwe, Y., De Cock, B., Pencina M., Steyerberg E.W. (2016). A calibration hierarchy for risk models was defined: from utopia to empirical data. \emph{Journal of Clinical Epidemiology}, 74, pp. 167-176. https://doi.org/10.1016/j.jclinepi.2015.12.005
+#' @references Austin, P. C., Harrell Jr, F. E., & van Klaveren, D. (2020). Graphical calibration curves and the integrated calibration index (ICI) for survival models. \emph{Statistics in Medicine}, 39(21), 2714-2742. https://doi.org/10.1002/sim.8570
 #'
 #' @returns a \code{pmcalibration} object containing calibration metrics and values for plotting
 #' @export
@@ -134,7 +134,7 @@ pmcalibration <- function(y, p,
   pw <- ci == "pw"
   if (is.null(pplot) & pw){
     warning("ci = 'pw' but eval = 0 or is.null. Will not calculate pointwise standard errors")
-    pw <- F
+    pw <- FALSE
   }
 
   if (is.null(transf)){
@@ -166,15 +166,15 @@ pmcalibration <- function(y, p,
   # fit cc
   if (smooth %in% c("none", "ns", "bs", "rcs")){
     cal <- glm_cal(y = y, p = p, x = x, xp = xp, smooth = smooth, time=time,
-                   save_data = T, save_mod = T, pw = pw, ...)
+                   save_data = TRUE, save_mod = TRUE, pw = pw, ...)
   } else if (smooth == "lowess"){
     if (pw) warning("ci = 'pw' is ignored for smooth = 'lowess'")
-    cal <- lowess_cal(y = y, p = p, x = x, xp = xp, save_data = T)
+    cal <- lowess_cal(y = y, p = p, x = x, xp = xp, save_data = TRUE)
   } else if (smooth == "loess"){
-    cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = T, save_mod = T, pw = pw)
+    cal <- loess_cal(y = y, p = p, x = x, xp = xp, save_data = TRUE, save_mod = TRUE, pw = pw)
   } else if (smooth == "gam"){
     cal <- gam_cal(y = y, p = p, x = x, xp = xp, time=time,
-                   save_data = T, save_mod = T, pw = pw, ...)
+                   save_data = TRUE, save_mod = TRUE, pw = pw, ...)
   }
 
   if (ci == "boot"){

@@ -31,9 +31,9 @@ reg_spline_X <- function(x, xp, smooth, ...){
       nk <- 5
     }
 
-    X <- Hmisc::rcspline.eval(x, nk = nk, knots = knots, inclx = T)
+    X <- Hmisc::rcspline.eval(x, nk = nk, knots = knots, inclx = TRUE)
     if (!is.null(xp)){
-      Xp <- Hmisc::rcspline.eval(xp, knots = attr(X, "knots"), inclx = T)
+      Xp <- Hmisc::rcspline.eval(xp, knots = attr(X, "knots"), inclx = TRUE)
     } else{
       Xp <- NULL
     }
@@ -58,12 +58,12 @@ reg_spline_X <- function(x, xp, smooth, ...){
       X <- splines::ns(x, df = df,
                        knots = knots,
                        Boundary.knots = if (!is.null(Boundary.knots)) Boundary.knots else range(x),
-                       intercept = F)
+                       intercept = FALSE)
     } else if (smooth == "bs"){
       X <- splines::bs(x, df = df,
                        knots = knots,
                        Boundary.knots = if (!is.null(Boundary.knots)) Boundary.knots else range(x),
-                       intercept = F)
+                       intercept = FALSE)
     }
     if (!is.null(xp)){
       #Xp <- splines:::predict(X, newx = xp)

@@ -13,6 +13,9 @@
 
 \item{...}{other args for \code{plot()} (\code{lim} and \code{lab} can be specified)}
 }
+\value{
+No return value, called for side effects
+}
 \description{
 This is for a quick and dirty calibration curve plot.
 Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.

@@ -4,7 +4,17 @@
 \alias{gam_cal}
 \title{fits a calibration curve via gam}
 \usage{
-gam_cal(y, p, x, xp, time = NULL, save_data = T, save_mod = T, pw = F, ...)
+gam_cal(
+  y,
+  p,
+  x,
+  xp,
+  time = NULL,
+  save_data = TRUE,
+  save_mod = TRUE,
+  pw = FALSE,
+  ...
+)
 }
 \arguments{
 \item{y}{binary or a time-to-event (\code{Surv}) outcome. For the former \code{family = binomial(link="logit")} and for the latter \code{family = mgcv::cox.ph()}.}

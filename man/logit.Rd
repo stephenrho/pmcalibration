@@ -2,11 +2,17 @@
 % Please edit documentation in R/utils.R
 \name{logit}
 \alias{logit}
-\title{Logit}
+\title{Logit transformation}
 \usage{
 logit(mu)
 }
+\arguments{
+\item{mu}{vector of numeric values between 0 and 1}
+}
+\value{
+logit transformed mu (log(mu/(1-mu)))
+}
 \description{
-Logit
+Logit transformation
 }
 \keyword{internal}

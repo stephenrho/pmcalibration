@@ -23,7 +23,7 @@
 #' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
 #'
 #' glm_cal(y = dat$y, p = p, x = p, xp = NULL, smooth="ns", df=5)
-glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T, pw = F, ...){
+glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = TRUE, save_mod = TRUE, pw = FALSE, ...){
 
   surv <- is(y, "Surv")
 
@@ -40,7 +40,7 @@ glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T,
     times <- y[, 1]
     events <- y[, 2]
     d <- data.frame(times, events, X)
-    mod <- survival::coxph(survival::Surv(times, events) ~ ., data = d, x = T)
+    mod <- survival::coxph(survival::Surv(times, events) ~ ., data = d, x = TRUE)
     p_c <- 1 - exp(-predict(mod, type = "expected",
                                              newdata = data.frame(times=time, events=1, X)))
   } else{
@@ -53,10 +53,10 @@ glm_cal <- function(y, p, x, xp, smooth, time=NULL, save_data = T, save_mod = T,
     if (pw){
       if (surv){
         p_c_p <- predict(mod, type = "expected",
-                         newdata = data.frame(times=time, events=1, Xp), se.fit = T)
+                         newdata = data.frame(times=time, events=1, Xp), se.fit = TRUE)
         # don't do 1 - exp(-S) until summary
       } else{
-        p_c_p <- predict(mod, newdata = Xp, type = "response", se.fit = T)
+        p_c_p <- predict(mod, newdata = Xp, type = "response", se.fit = TRUE)
       }
       p_c_plot <- p_c_p$fit
       p_c_plot_se <- p_c_p$se

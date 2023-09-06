@@ -2,11 +2,17 @@
 % Please edit documentation in R/utils.R
 \name{invlogit}
 \alias{invlogit}
-\title{Inverse logit}
+\title{Inverse logit transformation}
 \usage{
 invlogit(eta)
 }
+\arguments{
+\item{eta}{vector of numeric values}
+}
+\value{
+inverse logit transformed eta (exp(eta)/(1 + exp(eta)))
+}
 \description{
-Inverse logit
+Inverse logit transformation
 }
 \keyword{internal}

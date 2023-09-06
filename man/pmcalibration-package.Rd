@@ -6,7 +6,7 @@
 \alias{_PACKAGE}
 \title{pmcalibration: Calibration Curves for Clinical Prediction Models}
 \description{
-Fit calibrations curves for clinical prediction models and calculate several associated metrics (Eavg, E50, E90, Emax). Ideally predicted probabilities from a prediction model should align with observed probabilities. Calibration curves relate predicted probabilities (or a transformation thereof) to observed outcomes via a flexible non-linear smoothing function. `pmcalibration` allows users to choose between several smoothers (regression splines, GAMs, lowess, loess). Both binary and time-to-event outcomes are supported.
+Fit calibrations curves for clinical prediction models and calculate several associated metrics (Eavg, E50, E90, Emax). Ideally predicted probabilities from a prediction model should align with observed probabilities. Calibration curves relate predicted probabilities (or a transformation thereof) to observed outcomes via a flexible non-linear smoothing function. 'pmcalibration' allows users to choose between several smoothers (regression splines, generalized additive models/GAMs, lowess, loess). Both binary and time-to-event outcomes are supported. See Van Calster et al. (2016) \doi{10.1016/j.jclinepi.2015.12.005}; Austin and Steyerberg (2019) \doi{10.1002/sim.8281}; Austin et al. (2020) \doi{10.1002/sim.8570}.
 }
 \seealso{
 Useful links:
