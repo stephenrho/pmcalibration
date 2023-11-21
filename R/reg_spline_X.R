@@ -21,7 +21,11 @@ reg_spline_X <- function(x, xp, smooth, ...){
 
   # make matrix of predictors (i.e., spline basis functions, if any)
   if (smooth == "none"){
-    X = x #model.matrix(~x)
+    X <- x #model.matrix(~x)
+    Xp <- xp
+
+    smooth_args <- list(smooth = "none")
+
   } else if (smooth == "rcs"){
     if ("nk" %in% names(dots)) nk <- dots[['nk']] else nk <- NULL
     if ("knots" %in% names(dots)) knots <- dots[['knots']] else knots <- NULL
