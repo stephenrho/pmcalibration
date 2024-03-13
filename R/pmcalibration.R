@@ -209,6 +209,7 @@ pmcalibration <- function(y, p,
     call = call,
     metrics = cal$metrics,
     metrics.samples = metrics.samples,
+    p_c = data.frame(p = p, p_c = cal$p_c),
     plot = list(
       p = pplot,
       p_c_plot = cal$p_c_plot,

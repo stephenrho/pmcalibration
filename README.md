@@ -13,5 +13,5 @@ install.packages("pmcalibration")
 To install development version:
 
 ```         
-devtools::install_github("https://github.com/stephenrho/pmcalibration")
+devtools::install_github("stephenrho/pmcalibration")
 ```

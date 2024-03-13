@@ -14,6 +14,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+**The code below has been expanded into the `pminternal` package - see https://stephenrho.github.io/pminternal/**
+
 `pmcalibration` is focused on the *external validation* of existing models on new data. Nevertheless, it is possible to use the functions provided to perform *internal validation* of a model developed on a particular data set. This vignette focuses on internal validation via the calculation of *optimism* through bootstrap resampling (see References). 
 
 First we simulate some data with two 'true' predictors (`x1`, `x2`) that interact to predict the outcome and we add two 'noise' variables (`x3`, `x4`) which do not relate to the outcome. The model we consider (`m1`) is one with all 4 variables and their two way interactions.[^fn] 
@@ -24,6 +26,7 @@ First we simulate some data with two 'true' predictors (`x1`, `x2`) that interac
 library(pmcalibration)
 library(data.table)
 
+set.seed(1234)
 n <- 1000
 dat <- sim_dat(n, a1 = -3, a3 = .3)
 # add some noise variables
@@ -89,7 +92,6 @@ internal_cal <- function(model_fun, data, pred_fun, y="y", B=100){
   # one bootstrap resample
   one_boot <- function(model, data, pred_fun){
     d <- data[sample(nrow(data), replace = T), ]
-    #modelcall[["data"]] <- d
     
     # bootmodel <- eval(modelcall) # fit model on resampled data
     bootmodel <- model_fun(d)

@@ -1,7 +1,7 @@
 Package: pmcalibration
 Type: Package
 Title: Calibration Curves for Clinical Prediction Models
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person(given = "Stephen", family = "Rhodes", email= "steverho89@gmail.com", role=c("aut", "cre", "cph"))
 Maintainer: Stephen Rhodes <steverho89@gmail.com>
 Description: Fit calibrations curves for clinical prediction models and calculate several associated 
