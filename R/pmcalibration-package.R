@@ -4,7 +4,16 @@
 
 ## usethis namespace: start
 #' @importFrom graphics abline
+#' @importFrom graphics axis
+#' @importFrom graphics axTicks
+#' @importFrom graphics box
+#' @importFrom graphics clip
 #' @importFrom graphics lines
+#' @importFrom graphics par
+#' @importFrom graphics polygon
+#' @importFrom graphics segments
+#' @importFrom graphics text
+#' @importFrom grDevices adjustcolor
 #' @importFrom methods is
 #' @importFrom stats approx
 #' @importFrom stats binomial

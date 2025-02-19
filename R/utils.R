@@ -24,7 +24,7 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
 
   x <- object
 
-  checkmate::assert_double(conf_level, len = 1)
+  #checkmate::assert_double(conf_level, len = 1)
 
   probs <- c((1 - conf_level)/2, 1 - (1 - conf_level)/2)
 
@@ -272,6 +272,46 @@ get_cc <- function(x, conf_level = .95){
   return(cc)
 }
 
+#' Make a plot of predicted risks by outcome
+#'
+#' @param y vector of binary outcome
+#' @param p vector of predicted risks
+#' @param ypos where to center the y axis
+#' @param labels labels for outcomes 0 and 1, respectively. Default to "0" and "1"
+#' @param nbins Default 101
+#' @param add if TRUE (default) added to an existing plot. If FALSE a new plot is made
+#' @param maxh maximum height of a bar (the bin with largest number of observations). Default = .15
+#'
+#' @returns No return value, called for side effects
+#' @keywords internal
+#' @export
+riskdist <- function(y, p, ypos=0, labels=c(0,1), nbins=101, add=TRUE, maxh=.15){
+  if (!add){
+    plot(x=NA, y=NA, xlim=range(p)*c(-1.08, 1.08),
+         ylim=ypos + c(-maxh, maxh),
+         axes=FALSE, xlab="", ylab="")
+    axis(1)
+  }
+  bins <- seq(min(p), max(p), length.out=nbins)
+  pbin <- cut(p, bins, include.lowest = TRUE)
+  n0 <- table(pbin[y==0])
+  n1 <- table(pbin[y==1])
+  maxn <- max(n0, n1)
+  h0 <- maxh*(n0/maxn)
+  h1 <- maxh*(n1/maxn)
+  bins <- bins + c(diff(bins)/2, 0) # plot tick in the middle of range
+  bins <- bins[-nbins]
+  segments(x0 = bins[h1>0], y0 = ypos,
+           x1 = bins[h1>0], y1 = ypos + h1[h1>0])
+  segments(x0 = bins[h0>0], y0 = ypos,
+           x1 = bins[h0>0], y1 = ypos - h0[h0>0])
+
+  segments(x0 = min(p), x1 = max(p), y0 = ypos, y1 = ypos)
+
+  text(x = max(p)*1.02, y = ypos + maxh/2, labels = labels[2])
+  text(x = max(p)*1.02, y = ypos - maxh/2, labels = labels[1])
+}
+
 #' Plot a calibration curve (\code{pmcalibration} object)
 #'
 #' @description
@@ -280,7 +320,12 @@ get_cc <- function(x, conf_level = .95){
 #'
 #' @param x a \code{pmcalibration} calibration curve
 #' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
-#' @param ... other args for \code{plot()} (\code{lim} and \code{lab} can be specified)
+#' @param riskdist add risk distribution plot under calibration curve (TRUE) or not (FALSE)
+#' @param linecol color of the calibration curve line
+#' @param fillcol color of the confidence interval
+#' @param ideallty line type of the ideal unit slope line
+#' @param idealcol color of the ideal unit slope line
+#' @param ... other args for \code{plot()} (currently only \code{lim}s and \code{lab}s can be specified)
 #'
 #' @return No return value, called for side effects
 #' @export
@@ -295,12 +340,16 @@ get_cc <- function(x, conf_level = .95){
 #' p <- with(dat, invlogit(.5 + x1 + x2 + x1*x2*.1))
 #'
 #' # fit calibration curve
-#' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
+#' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw", plot = FALSE)
 #'
-#' plot(cal)
-plot.pmcalibration <- function(x, conf_level = .95, ...){
+#' plot(cal, xlab = "Predicted Risk of Outcome") # customize plot
+plot.pmcalibration <- function(x, conf_level = .95, riskdist = TRUE,
+                               linecol="black", fillcol="grey",
+                               ideallty=2, idealcol="red", ...){
 
   dots <- list(...)
+
+  if (x$outcome != "binary") riskdist <- FALSE
 
   # pdat <- summary.pmcalibration(x, conf_level = conf_level)
   # pdat <- pdat$plot
@@ -311,14 +360,58 @@ plot.pmcalibration <- function(x, conf_level = .95, ...){
   if ("xlab" %in% names(dots)) xlab <- dots[['xlab']] else xlab <- "Predicted Probability"
   if ("ylab" %in% names(dots)) ylab <- dots[['ylab']] else ylab <- "Estimated Probability"
 
-  plot(x = pdat$p, y = pdat$p_c, type="l",
-       xlim = xlim, ylim = ylim, xlab = xlab, ylab = ylab)
-  abline(0, 1, lty=2, col="grey")
+  # check lims
+  if (length(xlim) != 2 | length(ylim) != 2 | !is.numeric(xlim) | !is.numeric(ylim)) stop("Problem with xlim and/or ylim. Should be vectors of length 2")
+  if (xlim[1] > xlim[2]) xlim <- c(xlim[2], xlim[1])
+  if (ylim[1] > ylim[2]) ylim <- c(ylim[2], ylim[1])
+  if (any(xlim < 0) | any(xlim > 1)){
+    message("xlim extends beyond c(0,1). Reverting to this")
+    xlim <- c(0,1)
+  }
+  if (any(ylim < 0) | any(ylim > 1)){
+    message("ylim extends beyond c(0,1). Reverting to this")
+    ylim <- c(0,1)
+  }
+
+  yrange <- diff(ylim)
+
+  if (riskdist){
+    # extend y axis
+    ylim2 <- ylim - c(yrange*.3, 0)
+  } else{
+    ylim2 <- ylim
+  }
+
+  plot(x = NA, y = NA, type="l",
+       xlim = xlim, ylim = ylim2, xlab = xlab, ylab = ylab, axes=FALSE)
+  axis(side = 1, at = axTicks(side = 1, usr = xlim))
+  ytix <- axTicks(side = 2, usr = ylim)
+  axis(side = 2, at = ytix[ytix >= ylim[1] & ytix <= ylim[2]], las=1)
+  box()
+
+  clip(xlim[1], xlim[2], ylim[1], ylim[2])
+  abline(0, 1, lty=ideallty, col=idealcol)
 
   if ("lower" %in% colnames(pdat)){
-    lines(x = pdat$p, y = pdat$lower, lty=2)
-    lines(x = pdat$p, y = pdat$upper, lty=2)
+    # lines(x = pdat$p, y = pdat$lower, lty=2)
+    # lines(x = pdat$p, y = pdat$upper, lty=2)
+    polygon(x = c(pdat$p, rev(pdat$p)),
+            y = c(pdat$upper, rev(pdat$lower)),
+            col = adjustcolor(fillcol, alpha.f = .5), border = NA)
   }
+
+  lines(x = pdat$p, y = pdat$p_c, col=linecol)
+  do.call("clip", as.list(par()$usr))
+
+  if (riskdist){
+    p <- x$data$p; y <- x$data$y
+    i <- p >= xlim[1] & p <= xlim[2]
+    if (any(!i)) message("xlim leads to observations being omitted from curve and riskdist")
+    y <- y[i]; p <- p[i]
+    riskdist(y = y, p = p, ypos = ylim[1] - c(yrange*.15),
+             maxh = yrange*.15)
+  }
+
 }
 
 #' Logit transformation

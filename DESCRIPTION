@@ -16,22 +16,21 @@ Description: Fit calibrations curves for clinical prediction models and calculat
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 URL: https://github.com/stephenrho/pmcalibration
 BugReports: https://github.com/stephenrho/pmcalibration/issues
 Imports: 
-    Hmisc, 
-    MASS, 
-    checkmate, 
-    chk, 
-    mgcv, 
-    splines, 
-    graphics, 
+    Hmisc,
+    MASS,
+    mgcv,
+    splines,
+    graphics,
     stats,
-    methods, 
-    survival, 
-    pbapply, 
-    parallel
+    methods,
+    survival,
+    pbapply,
+    parallel,
+    grDevices
 Suggests: 
     knitr, 
     rmarkdown, 
