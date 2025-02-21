@@ -89,7 +89,6 @@ transplant$ltx <- as.numeric(transplant$event == "ltx")
 
 # get predictions from coxph model at time = 100
 # note that as we are fitting and evaluating the model on the same data
-# this is internal calibration (see vignette("internal-validation", package = "pmcalibration"))
 cph <- coxph(Surv(futime, ltx) ~ age + sex + abo + year, data = transplant)
 
 time <- 100

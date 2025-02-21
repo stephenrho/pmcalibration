@@ -53,7 +53,7 @@ reg_spline_X <- function(x, xp, smooth, ...){
     if ("Boundary.knots" %in% names(dots)) Boundary.knots <- dots[['Boundary.knots']] else Boundary.knots <- NULL
 
     if (is.null(df) & is.null(knots)){
-      warning("for smooth = ns or bs either df or knots must be provided. Defaulting to df = 6")
+      message("for smooth = ns or bs either df or knots must be provided. Defaulting to df = 6")
       df <- 6
     }
 

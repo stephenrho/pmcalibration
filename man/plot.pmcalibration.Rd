@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{plot.pmcalibration}
 \alias{plot.pmcalibration}
-\title{Plot a calibration curve (\code{pmcalibration} object)}
+\title{Plot a calibration curve}
 \usage{
 \method{plot}{pmcalibration}(
   x,
@@ -36,8 +36,8 @@
 No return value, called for side effects
 }
 \description{
-This is for a quick and dirty calibration curve plot.
-Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
+Plot a \code{pmcalibration} object. For binary outcomes, also plot the distribution of predicted risks by outcome.
+Alternatively you can use \code{get_curve()} to get the data required to plot the calibration curve.
 }
 \examples{
 library(pmcalibration)

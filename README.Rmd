@@ -15,9 +15,9 @@ knitr::opts_chunk$set(
 
 # pmcalibration: Calibration Curves for Clinical Prediction Models
 
-A clinical prediction model should produce *calibrated* risk predictions, which means the predicted probabilities should align with observed probabilities. There are various ways of assessing calibration (see https://pubmed.ncbi.nlm.nih.gov/26772608/). `pmcalibration` implements calibration curves for binary and (right censored) time-to-event outcomes and calculates metrics used to assess the correspondence between predicted and observed outcome probabilities (the 'integrated calibration index' or $ICI$, aka $E_{avg}$, as well as $E_{50}$, $E_{90}$, and $E_{max}$).
+A clinical prediction model should produce well *calibrated* risk predictions, meaning the predicted probabilities should align with observed outcome rates. There are different levels at which calibration can be assessed (see https://pubmed.ncbi.nlm.nih.gov/26772608/); this package focuses on assessing "moderate" calibration via non-linear calibration curves. `pmcalibration` implements calibration curves for binary and (right censored) time-to-event outcomes and calculates metrics used to assess the correspondence between predicted and observed outcome probabilities (the 'integrated calibration index' or $ICI$, aka $E_{avg}$, as well as $E_{50}$, $E_{90}$, and $E_{max}$ - see below).
 
-A goal of `pmcalibration` is to implement a range of methods for estimating a smooth relationship between predicted and observed probabilities and to provide confidence intervals for calibration metrics (via bootstrapping or simulation based inference). Users are able to transform predicted risks before creating calibration curve (when using a spline logit transforming appears to improve performance - https://doi.org/10.31219/osf.io/4n86q).
+A goal of `pmcalibration` is to implement a range of methods for estimating a smooth relationship between predicted and observed probabilities and to provide confidence intervals for calibration metrics (via bootstrapping or simulation based inference). Users are able to transform predicted risks before creating calibration curve (for example, logit transforming appears to improve performance when using a regression spline - https://doi.org/10.31219/osf.io/4n86q).
 
 The examples below demonstrate usage of the package.
 
@@ -26,6 +26,7 @@ The examples below demonstrate usage of the package.
 ```
 # to install
 install.packages("pmcalibration") # cran
+# or 
 devtools::install_github("stephenrho/pmcalibration") # development
 ```
 
@@ -34,7 +35,7 @@ library(pmcalibration)
 
 # simulate some data for vignette
 set.seed(2345)
-dat <- sim_dat(1000, a1 = -3, a3 = .3)
+dat <- sim_dat(1000, a1 = -1, a3 = 1)
 
 # show the first 3 columns (col 4 is the true linear predictor/LP)
 head(dat[-4])
@@ -43,42 +44,42 @@ head(dat[-4])
 We have data with a binary outcome, `y`, and two 'predictor' variables, `x1` and `x2`. Suppose we have an existing model for predicting `y` from `x1` and `x2` that is as follows
 
 ```
-p(y = 1) = plogis( -3 + 1*x1 + 1*x2 )
+p(y = 1) = plogis( -1 + 1*x1 + 1*x2 )
 ```
 
 To externally validate this model on this new data we need to calculate the predicted probabilities. We'll also extract the observed outcomes.
 
 ```{r}
-p <- plogis(with(dat, -3 + x1 + x2))
+p <- plogis(with(dat, -1 + x1 + x2))
 y <- dat$y
 ```
 
-First we can check 'calibration-in-the-large' via the calibration intercept and slope. 
+First we can check weak calibration: 
 
 ```{r}
-logistic_cal(y = y, p = p)
+(lcal <- logistic_cal(y = y, p = p))
 ```
 
-The calibration-intercept suggests no particular bias with a point estimate not far off zero. The calibration slope suggests that predicted probabilities are too extreme. However, this logistic calibration enforces a linear relationship between logit transformed probabilities and the log odds of y = 1. 
+The top part of the printed summary gives estimates of the calibration intercept and slope and their 95% CIs. The bottom part of the printed summary gives likelihood ratio tests (see [Miller et al. 1993](https://journals.sagepub.com/doi/abs/10.1177/0272989X9301300107)) assessing (1) weak calibration as a whole (the null hypothesis of intercept = 0 and slope = 1), (2) calibration in the large (H0: intercept = 0 given slope = 1), and (3) the calibration slope (H0: slope = 1). This output suggests the model the model is reasonably weakly calibrated: the calibration intercept and slope don't clearly differ from 0 and 1, respectively. 
 
-Below we use `pmcalibration` to fit a flexible calibration curve, allowing for a non-linear relationship between predicted and actual probabilities. This assesses 'moderate calibration' according to the hierarchy of [Van Calster et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/26772608/).
+We can use a calibration curve to assess 'moderate' calibration. Below we use `pmcalibration` to fit a flexible calibration curve, allowing for a non-linear relationship between predicted and actual probabilities.
 
-In the example below, we fit a calibration curve using `mgcv::gam` via a penalized thin plate regression spline (see `?mgcv::tprs`). `pmcalibration` calculates various metrics from the absolute difference between the predicted probability and the actual probability (as estimated by the calibration curve). In this case 95% confidence intervals for these metrics are calculated via simulation based inference. 
+In the example below, we fit a calibration curve using a restricted cubic spline with 5 knots (see `?rms::rcs`). `transf="logit"` signals that the predicted risks should be logit transformed before fitting the calibration curve (this is the default for a binary `y`). `pmcalibration` calculates various metrics from the absolute difference between the predicted probability and the actual probability (as estimated by the calibration curve). In this case 95% confidence intervals for these metrics are calculated via simulation based inference (`ci = "sim"`) with 1000 replicates. Alternatively we could have chosen bootstrap confidence intervals (`ci = "boot"`). 
 
 ```{r, fig.height=5, fig.width=6}
 (cc <- pmcalibration(y = y, p = p, 
-                     smooth = "gam", bs = "tp", 
-                     k = 10, transf="logit",
-                     ci = "sim", method="REML"))
-
+                     smooth = "rcs", nk = 5,
+                     transf="logit",
+                     ci = "sim", 
+                     n=1000))
 ```
  
 The printed metrics can be interpreted as follows: 
 
-- `Eavg` suggests that the average difference between prediction and actual probability of the outcome is 0.02 (or 2%) with a 95% CI of [0.009, 0.031].
-- `E50` is the median difference between prediction and observed probability (inferred from calibration curve). 50% of differences are 0.013 or smaller.
-- `E90` is the 90th percentile difference. 90% of differences are 0.024 or smaller. 
-- `Emax` is the largest observed difference between predicted and observed probability. The model can be off by up to 0.21, with a broad confidence interval.
+- `Eavg` suggests that the average difference between prediction and actual probability of the outcome is 0.054 (or 5%) with a 95% CI of [0.035, 0.076].
+- `E50` is the median difference between prediction and observed probability (inferred from calibration curve). 50% of differences are 0.059 or smaller.
+- `E90` is the 90th percentile difference. 90% of differences are 0.083 or smaller. 
+- `Emax` is the largest observed difference between predicted and observed probability. The model can be off by up to 0.14, with a broad confidence interval.
 - `ECI` is the average squared difference between predicted and observed probabilities (multiplied by 100). See [Van Hoorde et al. (2015)](https://pubmed.ncbi.nlm.nih.gov/25579635/).
 
 `pmcalibration` produces a plot by default, as shown above. A more custom plot can be obtained via `plot`.
@@ -87,34 +88,40 @@ The printed metrics can be interpreted as follows:
 plot(cc, xlab="Predicted Risk of Outcome", ylab="Expected Proportion with Outcome", fillcol = "blue", ideallty = 0)
 ```
 
-Or one could use `get_cc` to extract data for plotting with method of your choice.
+Or one could use `get_curve` to extract data for plotting with method of your choice.
 
 ```{r}
-
-pcc <- get_cc(cc)
+pcc <- get_curve(cc)
 head(pcc) 
 # p = predicted risk (x-axis; this is not p provided to pmcalibration but is determined by eval)
 # p_c = risk implied by calibration curve (y-axis)
-
 ```
 
-The model in its current form very slightly underestimates risk at low levels of predicted risk and then overestimates risk at predicted probabilities of over 0.4.
+The model in its current form very slightly overestimates risk at low levels of predicted risk and then underestimates risk at predicted probabilities of over around 0.6.
 
-The results above can be compared with `rms::val.prob`. Note that this uses `lowess(p, y, iter=0)` to fit a calibration curve. This calibration curve suggests that the overestimation at high levels of predicted risk is even more extreme that that suggested by `gam` calibration curve above. This is particularly evident in the estimate of `Emax` (0.35 vs 0.21). 
+The results above can be compared with `rms::val.prob`. Note that this uses `lowess(p, y, iter=0)` to fit a calibration curve. In this case `lowess` results in the curve extending beyond the possible range of risks, but the Emax, E90, and Eavg point estimates are consistent with those above.
 
 ```{r, fig.height=5, fig.width=6}
 library(rms)
-val.prob(p = p, y = y)
+val.prob(p = p, y = y) |> 
+  round(3)
 ```
 
-Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calibration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`.
+Note also that the calibration intercept reported by `rms::val.prob` comes from the same logistic regression as that used to estimate the calibration slope. In `logistic_cal` the calibration intercept is estimated via a `glm` with logit transformed predicted probabilities included as an offset term (i.e., with slope fixed to 1 - see, e.g., [Van Calster et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26772608/)). The calibration slope is estimated via a separate `glm`. We can confirm this by accessing the corresponding estimates from the `logistic_cal` object.
+
+```{r}
+# access the model used to get calibration slope
+# and compare to estimates from val.prob
+coef(lcal$calibration_slope) |> 
+  round(3)
+```
 
 \
 \
 
 # Time to event outcome
 
-The code below produces a calibration curve, and associated metrics, for a time-to-event outcome. The curve has to be constructed for predictions at a given time point, so an extra argument `time` should be specified. Here we use a restricted cubic spline with 5 knots to assess predictions at time = 15.
+The code below produces a calibration curve, and associated metrics, for a time-to-event outcome. The curve has to be constructed for predictions at a given time point, so an extra argument `time` should be specified. Here we use a restricted cubic spline with 5 knots to assess predictions at time = 15. In this case we use `ci="boot"` to get bootstrap confidence intervals for the metrics and curve (`ci="sim"` is currently unsupported for time-to-event outcomes). By default predicted risks are transformed via the complementary log-log transformation (`function(x) log(-log(1 - x))`) before estimating the calibration curve.
 
 ```{r, fig.height=5, fig.width=6}
 library(simsurv)
@@ -150,18 +157,34 @@ p = 1 - exp(-predict(cph, type="expected", newdata = data.frame(eventtime=15, st
 y <- with(dval, Surv(eventtime, status))
 
 # calibration curve at time = 15
-(cc <- pmcalibration(y = y, p = p, smooth = "rcs", nk = 5, ci = "pw", time = 15))
+(cc <- pmcalibration(y = y, p = p, smooth = "rcs", nk = 5, 
+                     ci = "boot", time = 15))
 mtext("time = 15")
-# pointwise standard errors for plot but no CI for metrics
-# 'boot' CIs are also available for time to event outcomes
 
 ```
 
 Compare to `rms::val.surv`, which with the arguments specified below uses `polspline::hare` to fit a calibration curve. Note `val.surv` uses probability of surviving until time = u *not* probability of event occurring by time = u.
 
 ```{r, fig.height=5, fig.width=6}
-plot(val.surv(S = y, est.surv = 1-p, u=15, fun = function(x) log(-log(x))))
+
+(vs <- val.surv(S = y, est.surv = 1-p, u=15, 
+                fun = function(x) log(-log(x))))
+plot(vs, lim=0:1)
 ```
+
+We can make a plot that is easier to compare.
+
+```{r}
+x <- get_curve(cc)
+
+with(x, plot(1-p, 1-p_c, type="l", xlim=0:1, ylim=0:1, 
+             xlab="Predicted Probability of Surviving 15", 
+             ylab="Actual Probability of Surviving 15"))
+matplot(1-x$p, y = 1-x[, 3:4], type = "l", lty=2, 
+        col="black", add = TRUE)
+abline(0,1, col="red", lty=2)
+```
+
 
 # Internal validation
 

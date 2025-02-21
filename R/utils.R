@@ -24,8 +24,6 @@ summary.pmcalibration <- function(object, conf_level = .95, ...){
 
   x <- object
 
-  #checkmate::assert_double(conf_level, len = 1)
-
   probs <- c((1 - conf_level)/2, 1 - (1 - conf_level)/2)
 
   m_tab <- data.frame(Estimate = x$metrics)
@@ -146,91 +144,6 @@ print.pmcalibration <- function(x, digits = 2, conf_level = .95, ...) {
 }
 
 
-#' Summarize a logistic_cal object
-#'
-#' @param object a \code{logistic_cal} object
-#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
-#' @param ... ignored
-#'
-#' @return estimates and conf_level*100 confidence intervals for calibration intercept and calibration slope.
-#' The former is estimated from a \code{glm} (family = binomial("logit")) where the linear predictor (logit(p)) is included as an offset.
-#'
-#' @export
-summary.logistic_cal <- function(object, conf_level = .95, ...){
-  x <- object
-
-  ci_ci <- suppressMessages(confint(x$calibration_intercept, level = conf_level)) # profile cis
-  cs_ci <- suppressMessages(confint(x$calibration_slope, level = conf_level))
-  cs_ci <- cs_ci["LP", ]
-
-  names(ci_ci) <- names(cs_ci) <- c('lower', "upper")
-
-  ci_s <- summary.glm(x$calibration_intercept)
-  cs_s <- summary.glm(x$calibration_slope)
-
-  ci_s <- ci_s$coefficients
-  cs_s <- cs_s$coefficients[2, ]
-
-  cs_s[[3]] <- (cs_s[[1]] - 1)/cs_s[[2]]
-
-  cs_s[[4]] <- 2*pnorm(q = abs(cs_s[[3]]), lower.tail = FALSE)
-
-  c_tab <- rbind(
-    cbind(ci_s, t(ci_ci)),
-    cbind(t(cs_s), t(cs_ci))
-  )
-
-  rownames(c_tab) <- c("Calibration Intercept", "Calibration Slope")
-
-  c_tab <- as.data.frame(c_tab)
-
-  out <- list(stats = c_tab, conf_level = conf_level)
-
-  class(out) <- c("logistic_calsummary")
-
-  return(out)
-}
-
-#' Print a logistic_cal summary
-#'
-#' @param x a \code{logistic_calsummary} object
-#' @param digits number of digits to print
-#' @param ... ignored
-#'
-#' @returns prints a summary
-#'
-#' @rdname print.logistic_calsummary
-#' @export
-print.logistic_calsummary <- function(x, digits=2, ...){
-  stats <- x$stats
-  stats$`Pr(>|z|)` <- format.pval(stats$`Pr(>|z|)`, digits = digits, eps = 0.001)
-
-  cat("Logistic calibration intercept and slope:\n\n")
-
-  #print.data.frame(out, digits=digits)
-  print(format.data.frame(stats, digits=digits, nsmall=digits))
-  cat("\n")
-  cat("z-value for calibration slope is relative to slope = 1.\n")
-  cat("lower and upper are the bounds of", sprintf("%.0f%%", x$conf_level*100), "profile confidence intervals.")
-
-  invisible(x)
-}
-
-#' Print a \code{logistic_cal} object
-#'
-#' @param x a \code{logistic_cal} object
-#' @param digits number of digits to print
-#' @param conf_level width of the confidence interval (0.95 gives 95\% CI)
-#' @param ... optional arguments passed to print
-#'
-#' @returns prints a summary
-#'
-#' @rdname print.logistic_cal
-#' @export
-print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
-  print(summary(x, conf_level = conf_level), digits = digits, ...)
-}
-
 #' Extract plot data from \code{pmcalibration} object
 #'
 #' @param x \code{pmcalibration} object
@@ -256,7 +169,7 @@ print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
 #' # fit calibration curve
 #' cal <- pmcalibration(y = dat$y, p = p, smooth = "gam", k = 20, ci = "pw")
 #'
-#' cplot <- get_cc(cal, conf_level = .95)
+#' cplot <- get_curve(cal, conf_level = .95)
 #' head(cplot)
 #'
 #' if (requireNamespace("ggplot2", quietly = TRUE)){
@@ -267,7 +180,7 @@ print.logistic_cal <- function(x, digits = 2, conf_level = .95, ...) {
 #'   geom_ribbon(alpha = 1/4) +
 #'   lims(x=c(0,1), y=c(0,1))
 #' }
-get_cc <- function(x, conf_level = .95){
+get_curve <- function(x, conf_level = .95){
   cc <- summary(x, conf_level = conf_level)$plot
   return(cc)
 }
@@ -312,11 +225,11 @@ riskdist <- function(y, p, ypos=0, labels=c(0,1), nbins=101, add=TRUE, maxh=.15)
   text(x = max(p)*1.02, y = ypos - maxh/2, labels = labels[1])
 }
 
-#' Plot a calibration curve (\code{pmcalibration} object)
+#' Plot a calibration curve
 #'
 #' @description
-#' This is for a quick and dirty calibration curve plot.
-#' Alternatively you can use \code{get_cc()} to get the data required to plot the calibration curve.
+#' Plot a \code{pmcalibration} object. For binary outcomes, also plot the distribution of predicted risks by outcome.
+#' Alternatively you can use \code{get_curve()} to get the data required to plot the calibration curve.
 #'
 #' @param x a \code{pmcalibration} calibration curve
 #' @param conf_level width of the confidence interval (0.95 gives 95\% CI). Ignored if call to \code{pmcalibration} didn't request confidence intervals
@@ -353,7 +266,7 @@ plot.pmcalibration <- function(x, conf_level = .95, riskdist = TRUE,
 
   # pdat <- summary.pmcalibration(x, conf_level = conf_level)
   # pdat <- pdat$plot
-  pdat <- get_cc(x, conf_level = conf_level)
+  pdat <- get_curve(x, conf_level = conf_level)
 
   if ("xlim" %in% names(dots)) xlim <- dots[['xlim']] else xlim <- c(0,1)
   if ("ylim" %in% names(dots)) ylim <- dots[['ylim']] else ylim <- c(0,1)
