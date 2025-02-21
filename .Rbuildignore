@@ -6,3 +6,7 @@
 ^CRAN-SUBMISSION$
 LICENSE
 ^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
